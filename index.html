@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="bower_components/pannellum.css">
     <link rel="stylesheet" href="css/style.css?v=150">
     <link rel="icon" type="image/png" href="img/favicon.ico">
+    <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Widgets/widgets.css">
 </head>
 <body>
 <nav class="navbar navbar-dark visor-nav" style="background: linear-gradient(135deg, #133c2e 0%, #1b4d3e 100%); border-bottom: 2px solid #52b788; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
@@ -17,39 +18,12 @@
         <span class="navbar-brand">⛰️ Relleno sanitario San Martin de las Piramides</span>
         <div class="d-flex align-items-center gap-2">
             <span class="text-light small">Monitoreo Aéreo UAV - INyDES 2026</span>
-            <a href="visitas.html" target="_blank" class="btn btn-sm btn-outline-light py-0 px-2 fw-semibold shadow-sm" title="Ver registro de visitantes y ubicaciones" style="font-size:0.75rem; border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.15);">📊 Visitas y Ubicación</a>
+            
         </div>
     </div>
 </nav>
 <div class="visor-container">
     <aside class="visor-sidebar">
-        <section class="card visor-card mb-2" style="position: relative; overflow: visible;">
-            <div class="card-header text-white d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #133c2e 0%, #1b4d3e 100%); font-weight:600;">
-                <span>📸 Galería UAV</span>
-                <span class="badge bg-warning text-dark" style="font-size:0.7rem;">4 tomas</span>
-            </div>
-            <div class="card-body p-2">
-                <div class="d-grid gap-1">
-                    <button class="btn btn-xs btn-outline-warning text-start py-1 px-2 d-flex align-items-center justify-content-between btn-quick-pano" data-id="DJI_20260918111105_0008_V.JPG" style="font-size:0.75rem;">
-                        <span>🌐 360° Vértice Norte</span>
-                        <span class="badge bg-dark text-warning">360°</span>
-                    </button>
-                    <button class="btn btn-xs btn-outline-warning text-start py-1 px-2 d-flex align-items-center justify-content-between btn-quick-pano" data-id="DJI_20260918111253_0009_V.JPG" style="font-size:0.75rem;">
-                        <span>🌐 360° Vértice Sur</span>
-                        <span class="badge bg-dark text-warning">360°</span>
-                    </button>
-                    <button class="btn btn-xs btn-outline-info text-start py-1 px-2 d-flex align-items-center justify-content-between btn-quick-foto" data-id="DJI_20260918110946_0005_V.JPG" style="font-size:0.75rem;">
-                        <span>📷 Foto Aérea Sur-Oriente</span>
-                        <span class="badge bg-dark text-info">HD</span>
-                    </button>
-                    <button class="btn btn-xs btn-outline-info text-start py-1 px-2 d-flex align-items-center justify-content-between btn-quick-foto" data-id="DJI_20260918111028_0007_V.JPG" style="font-size:0.75rem;">
-                        <span>📷 Foto Aérea Nor-Poniente</span>
-                        <span class="badge bg-dark text-info">HD</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
         <section class="card visor-card mb-2">
             <div class="card-header text-white" style="background: linear-gradient(135deg, #1b4d3e 0%, #2d6a4f 100%); font-weight: 600;">Capas</div>
             <div class="card-body p-2" id="overlay-panel">Cargando...</div>
@@ -107,7 +81,32 @@
             </div>
         </section>
     </aside>
-    <main id="map" class="visor-map"></main>
+        <main class="visor-stage">
+        <!-- Selector flotante centrado en la parte superior: 2D | 3D -->
+        <div class="visor-mode-toggle-wrapper">
+            <div class="visor-mode-toggle shadow">
+                <button type="button" id="btn-mode-2d" class="mode-btn active" title="Vista cartográfica 2D (OpenLayers)">
+                    <span class="mode-icon">🗺️</span> 2D
+                </button>
+                <button type="button" id="btn-mode-3d" class="mode-btn" title="Modelo 3D fotogramétrico (Cesium)">
+                    <span class="mode-icon">🌐</span> 3D
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenedor 2D (OpenLayers) -->
+        <div id="map" class="visor-map"></div>
+
+        <!-- Contenedor 3D (Cesium) -->
+        <div id="cesiumContainer" class="visor-cesium" style="display:none;"></div>
+        
+        <!-- Overlay de carga 3D -->
+        <div id="cesium-loading-overlay" class="cesium-loading" style="display:none;">
+            <div class="spinner-border text-success mb-2" role="status"></div>
+            <div class="fw-bold text-white small">Cargando Modelo 3D Cesium Ion...</div>
+            <div class="text-white-50" style="font-size:0.75rem;">Malla fotogramétrica de alta resolución (Asset 5900012)</div>
+        </div>
+    </main>
 </div>
 <div id="info-panel" class="visor-info-panel" hidden>
     <div class="card">
@@ -115,7 +114,7 @@
             <span><strong>Información del feature</strong></span>
             <button class="btn btn-sm btn-light" id="close-info">x</button>
         </div>
-        <div class="card-body" id="info-content">Haz click en una subzona para ver detalles.</div>
+        <div class="card-body" id="info-content">Haz click en una entidad para ver detalles.</div>
     </div>
 </div>
 
@@ -123,10 +122,13 @@
 <script>window.ol || document.write('<script src="bower_components/ol.js"><\/script>')</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
 <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
-<script src="data/config.js?v=170"></script>
+<script src="data/config.js?v=250"></script>
 <script src="bower_components/bootstrap.bundle.min.js"></script>
 <script src="bower_components/pannellum.js"></script>
-<script src="js/app.js?v=190"></script>
+<script src="js/app.js?v=250"></script>
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.119/Build/Cesium/Cesium.js"></script>
+<script src="js/cesium_3d.js?v=250"></script>
+
 
 <!-- Ventana Flotante del Reproductor de Video de Vuelo Sincronizado -->
 <div id="flight-video-modal" class="flight-video-window" style="display:none;">

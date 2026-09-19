@@ -613,3 +613,105 @@ body.attr-panel-active #map {
     line-height: 1.5;
     border-radius: 4px;
 }
+
+
+/* =====================================================================
+   CONMUTADOR 2D / 3D FLOTANTE (CENTRO SUPERIOR DEL VISOR)
+   ===================================================================== */
+.visor-stage {
+    flex: 1;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    background: #0f172a;
+}
+
+.visor-mode-toggle-wrapper {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1200;
+    pointer-events: auto;
+}
+
+.visor-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(19, 60, 46, 0.90);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(82, 183, 136, 0.55);
+    border-radius: 30px;
+    padding: 3px 5px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    gap: 3px;
+    user-select: none;
+}
+
+.visor-mode-toggle .mode-btn {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #e2e8f0;
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 6px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.visor-mode-toggle .mode-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.visor-mode-toggle .mode-btn.active {
+    background: linear-gradient(135deg, #2d6a4f 0%, #52b788 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 10px rgba(45, 106, 79, 0.6);
+}
+
+.visor-mode-toggle .mode-icon {
+    font-size: 0.95rem;
+}
+
+/* =====================================================================
+   CONTENEDOR CESIUM 3D Y OVERLAY DE CARGA
+   ===================================================================== */
+.visor-cesium {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #000000;
+}
+
+.visor-cesium .cesium-viewer {
+    width: 100%;
+    height: 100%;
+}
+
+.cesium-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1250;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(82, 183, 136, 0.45);
+    border-radius: 14px;
+    padding: 24px 32px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    min-width: 260px;
+}

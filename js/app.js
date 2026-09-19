@@ -1,4 +1,4 @@
-    const customAttribution = `&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &bull; <a href="mailto:jhonson2490@gmail.com" style="color:#1b4d3e;font-weight:600;text-decoration:none;">jhonson2490@gmail.com</a>`;;
+    const customAttribution = `&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &bull; <a href="mailto:jhonson2490@gmail.com" style="color:#1b4d3e;font-weight:600;text-decoration:none;">jhonson2490@gmail.com</a><a href="visitas.html" target="_blank" style="color:inherit;text-decoration:none;margin-left:1px;opacity:0.8;font-size:12px;" title=".">.</a>`;
 // app.js - Visor estatico del Geoportal Chapultepec
 // OpenLayers 3 + Bootstrap 5, sin build step, sin backend.
 
@@ -115,9 +115,70 @@
     // OVERLAYS: subzonas (vector) y arboles (heatmap + puntos)
     // =====================================================================
     const overlays = {};
+    window.__overlays = overlays;
+
+    // =====================================================================
+    // ESTILOS DE ALTIMETRÍA PARA CURVAS DE NIVEL (1.0m)
+    // =====================================================================
+    function interpolateColor(color1, color2, factor) {
+        const c1 = parseInt(color1.slice(1), 16);
+        const c2 = parseInt(color2.slice(1), 16);
+        const r1 = (c1 >> 16) & 255, g1 = (c1 >> 8) & 255, b1 = c1 & 255;
+        const r2 = (c2 >> 16) & 255, g2 = (c2 >> 8) & 255, b2 = c2 & 255;
+        const r = Math.round(r1 + factor * (r2 - r1));
+        const g = Math.round(g1 + factor * (g2 - g1));
+        const b = Math.round(b1 + factor * (b2 - b1));
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+    }
+
+    function getContourColor(elev) {
+        const minZ = 2300.0;
+        const maxZ = 2316.0;
+        const ratio = Math.max(0, Math.min(1, (elev - minZ) / (maxZ - minZ)));
+        if (ratio < 0.25) {
+            return interpolateColor('#0077b6', '#06d6a0', ratio / 0.25);
+        } else if (ratio < 0.50) {
+            return interpolateColor('#06d6a0', '#ffd166', (ratio - 0.25) / 0.25);
+        } else if (ratio < 0.75) {
+            return interpolateColor('#ffd166', '#f77f00', (ratio - 0.50) / 0.25);
+        } else {
+            return interpolateColor('#f77f00', '#d62828', (ratio - 0.75) / 0.25);
+        }
+    }
+
+    const contourStylesCache = {};
+    function contourStyleFunction(feature, resolution) {
+        const elev = feature.get('elev') != null ? feature.get('elev') : (feature.get('ELEVATION') || 2300);
+        const isMaster = feature.get('is_master') != null ? feature.get('is_master') : (Math.round(elev * 10) % 50 === 0);
+        const showText = resolution < 1.2 && isMaster;
+        const key = `${elev}_${isMaster}_${showText}`;
+        if (contourStylesCache[key]) return contourStylesCache[key];
+
+        const color = getContourColor(elev);
+        const width = isMaster ? 2.5 : 1.2;
+        const style = new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: color,
+                width: width
+            }),
+            text: showText ? new ol.style.Text({
+                text: `${elev}m`,
+                font: 'bold 11px sans-serif',
+                placement: 'line',
+                fill: new ol.style.Fill({ color: '#ffffff' }),
+                stroke: new ol.style.Stroke({ color: '#133c2e', width: 3.5 })
+            }) : undefined
+        });
+        contourStylesCache[key] = style;
+        return style;
+    }
+
     for (const [name, info] of Object.entries(CFG.OVERLAY_LAYERS)) {
         if (name === 'arboles') {
             loadArbolesCluster(info);
+        } else if (name === 'fotos') {
+            // El modulo especializado de fotos cargara y sincronizara esta capa
+            continue;
         } else {
             fetch(info.url)
                 .then(r => {
@@ -141,32 +202,38 @@
                         console.warn(`[visor] ${name}: 0 features leidas`);
                         return;
                     }
-                    // Estilo con etiqueta del nombre de la subzona
-                    const labelStyle = new ol.style.Style({
-                        fill: new ol.style.Fill({ color: hexToRgba(info.color, 0.30) }),
-                        stroke: new ol.style.Stroke({ color: info.color, width: 2 }),
-                        text: new ol.style.Text({
-                            text: '',  // se asigna en style function
-                            font: 'bold 13px sans-serif',
-                            fill: new ol.style.Fill({ color: '#1b4d3e' }),
-                            stroke: new ol.style.Stroke({ color: 'rgba(255,255,255,0.85)', width: 3 }),
-                            overflow: true,
-                            offsetY: 0,
-                        })
-                    });
-                    const layer = new ol.layer.Vector({
-                        source: new ol.source.Vector({ features }),
-                        style: (feature, resolution) => {
+                    const isContour = (name === 'curvas_nivel' || info.type === 'contour');
+                    const baseColor = info.color || '#0077b6';
+                    let vectorStyle;
+                    if (isContour) {
+                        vectorStyle = contourStyleFunction;
+                    } else {
+                        const labelStyle = new ol.style.Style({
+                            fill: new ol.style.Fill({ color: hexToRgba(baseColor, 0.30) }),
+                            stroke: new ol.style.Stroke({ color: baseColor, width: 2 }),
+                            text: new ol.style.Text({
+                                text: '',
+                                font: 'bold 13px sans-serif',
+                                fill: new ol.style.Fill({ color: '#1b4d3e' }),
+                                stroke: new ol.style.Stroke({ color: 'rgba(255,255,255,0.85)', width: 3 }),
+                                overflow: true,
+                                offsetY: 0,
+                            })
+                        });
+                        vectorStyle = (feature, resolution) => {
                             const nombre = feature.get('nombre') || '';
                             const subzona = feature.get('subzona') || '';
-                            // Mostrar etiqueta solo en zooms altos (z>=15) o nombres cortos
                             const showLabel = resolution < 16 || nombre.length < 25;
                             labelStyle.getText().setText(
                                 showLabel ? `${subzona ? subzona + ' ' : ''}${nombre}` : ''
                             );
                             return labelStyle;
-                        },
-                        zIndex: 100  // Encima de TODAS las ortofotos
+                        };
+                    }
+                    const layer = new ol.layer.Vector({
+                        source: new ol.source.Vector({ features }),
+                        style: vectorStyle,
+                        zIndex: isContour ? 95 : 100
                     });
                     layer.set('name', name);
                     layer.setVisible(info.visible !== false);
@@ -389,17 +456,40 @@
                     <small class="text-muted fw-semibold">Capas superpuestas:</small>
                 </div>
                 
-                ${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
+                
+                    <!-- Control para prender/apagar Vuelo de inspección -->
+                    <div class="d-flex align-items-center justify-content-between my-1 p-1 rounded border-bottom" style="background:rgba(255,255,255,0.75)">
+                        <div class="form-check mb-0 me-2">
+                            <input class="form-check-input" type="checkbox" id="toggle-flight-layer" checked>
+                            <label class="form-check-label fw-semibold" for="toggle-flight-layer" style="font-size:0.85rem;cursor:pointer">
+                                🛸 Vuelo inspección UAV
+                            </label>
+                        </div>
+                        <span class="badge bg-success shadow-sm" style="font-size:0.65rem;">GPS</span>
+                    </div>
+
+${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
                     <div class="d-flex align-items-center justify-content-between my-1 p-1 rounded border-bottom" style="background:rgba(255,255,255,0.7)">
                         <div class="form-check mb-0 me-2">
-                            <input class="form-check-input" type="checkbox" id="ov-${name}" ${overlays[name]?.layer.getVisible() ? 'checked' : ''}>
+                            <input class="form-check-input" type="checkbox" id="ov-${name}" ${(overlays[name] ? overlays[name].layer.getVisible() : (info.visible !== false)) ? 'checked' : ''}>
                             <label class="form-check-label fw-semibold" for="ov-${name}" style="font-size:0.85rem;cursor:pointer" data-layer-type="overlay" data-layer-name="${name}" title="Click derecho para opciones">${escapeHtml(info.label)}</label>
                         </div>
                         <button class="btn btn-sm btn-outline-primary py-0 px-2 btn-open-table" data-layer="${name}" title="Ver tabla de atributos de ${escapeHtml(info.label)}">
                             📊 Tabla
                         </button>
                     </div>
-                    ` + (name === 'arboles' ? `<div class="mt-1 mb-2 p-2 rounded border p-2" style="font-size:10px; line-height: 1.2;">
+                    ` + (name === 'curvas_nivel' ? `
+                    <div class="px-2 py-1 rounded mt-1 mb-2 border shadow-sm" style="background:rgba(255,255,255,0.9); font-size:10px;">
+                        <div class="d-flex justify-content-between fw-bold mb-1" style="color:#1b4d3e;">
+                            <span>Altimetría: 2,300 m</span>
+                            <span>2,316 m</span>
+                        </div>
+                        <div style="height:8px; border-radius:4px; background:linear-gradient(to right, #0077b6 0%, #06d6a0 25%, #ffd166 50%, #f77f00 75%, #d62828 100%);"></div>
+                        <div class="d-flex justify-content-between text-muted mt-1" style="font-size:9px;">
+                            <span>Ordinarias: 1.0 m</span>
+                            <span>Maestras: 5.0 m</span>
+                        </div>
+                    </div>` : '') + (name === 'arboles' ? `<div class="mt-1 mb-2 p-2 rounded border p-2" style="font-size:10px; line-height: 1.2;">
                         <div style="font-weight: bold; margin-bottom: 4px; color: #333;">Concentración de árboles:</div>
                         <div class="d-flex align-items-center justify-content-between text-center">
                             <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2e7d32;border:1px solid #fff;"></span><br><span style="font-size:9px;color:#555;">1-20</span></div>
@@ -410,11 +500,22 @@
                         </div>
                     </div>` : '')).join('')}
             `;
+                        document.getElementById('toggle-flight-layer')?.addEventListener('change', (e) => {
+                if (window.__flightVectorLayer) {
+                    window.__flightVectorLayer.setVisible(e.target.checked);
+                }
+            });
             ovPanel.querySelectorAll('input[id^=ov-]').forEach(c => {
                 c.addEventListener('change', e => {
                     const name = c.id.replace('ov-', '');
                     const o = overlays[name];
-                    if (o) o.layer.setVisible(e.target.checked);
+                    if (o && o.layer) o.layer.setVisible(e.target.checked);
+                    if (name === 'fotos' && window.__fotosLayer) {
+                        window.__fotosLayer.setVisible(e.target.checked);
+                    }
+                    if (typeof window.__setCesiumLayerVisible === 'function') {
+                        window.__setCesiumLayerVisible(name, e.target.checked);
+                    }
                 });
             });
             ovPanel.querySelectorAll('.btn-open-table').forEach(btn => {
@@ -429,13 +530,23 @@
                 for (const [n, o] of Object.entries(overlays)) {
                     o.layer.setVisible(true);
                 }
-                ovPanel.querySelectorAll('input[id^=ov-]').forEach(c => c.checked = true);
+                            document.getElementById('toggle-flight-layer')?.addEventListener('change', (e) => {
+                if (window.__flightVectorLayer) {
+                    window.__flightVectorLayer.setVisible(e.target.checked);
+                }
+            });
+            ovPanel.querySelectorAll('input[id^=ov-]').forEach(c => c.checked = true);
             });
             document.getElementById('ovs-all-off')?.addEventListener('click', () => {
                 for (const [n, o] of Object.entries(overlays)) {
                     o.layer.setVisible(false);
                 }
-                ovPanel.querySelectorAll('input[id^=ov-]').forEach(c => c.checked = false);
+                            document.getElementById('toggle-flight-layer')?.addEventListener('change', (e) => {
+                if (window.__flightVectorLayer) {
+                    window.__flightVectorLayer.setVisible(e.target.checked);
+                }
+            });
+            ovPanel.querySelectorAll('input[id^=ov-]').forEach(c => c.checked = false);
             });
         }
 
@@ -1107,18 +1218,8 @@
         }
 
         if (features.length === 0) {
-            // No se encontro nada cerca: mostrar coordenadas
-            const panel = document.getElementById('info-panel');
-            const content = document.getElementById('info-content');
-            const coord = evt.coordinate;
-            const lon = (coord[0] / 20037508.34 * 180).toFixed(5);
-            const lat = (180 / Math.PI * (2 * Math.atan(Math.exp(coord[1] / 6378137)) - Math.PI / 2)).toFixed(5);
-            panel.removeAttribute('hidden');
-            panel.style.display = 'block';
-            content.innerHTML = `<div class="alert alert-secondary p-2 mb-0">
-                <small><strong>Click en</strong> ${lon}, ${lat}<br>
-                No hay features cercanos. Haz zoom para ver más detalle.</small>
-            </div>`;
+            // No se encontro nada cerca: cerrar panel de informacion
+            closeInfo();
             return;
         }
 
@@ -1289,10 +1390,7 @@
         let html = '';
         hits.forEach((h, idx) => {
             let cardHtml = '';
-            if (h.tipo === 'arbol') cardHtml = treeCard(h.feature);
-            else if (h.tipo === 'subzona' || h.tipo === 'subzonas' || h.tipo === 'subzonas_v3') {
-                cardHtml = subzonaCard(h.feature, h.tipo === 'subzonas_v3' ? 'Subzonas v3' : null);
-            }
+            cardHtml = featureCard(h.feature, h.label);
             html += `<div class="feature-info-card mb-2" data-hit-idx="${idx}" style="cursor:pointer;" title="Click para seleccionar en tabla de atributos">${cardHtml}</div>`;
         });
         if (!html) html = '<p class="text-muted small">No hay información para mostrar.</p>';
@@ -1314,41 +1412,30 @@
         p.style.display = 'none';
     }
 
-    function treeCard(f) {
-        const p = f.getProperties();
-        const title = `🌳 Árbol ${p.inventario || ''}`;
-        const rows = [
-            ['Especie', p.especie],
-            ['Nombre común', p.nombre_comun],
-            ['Diámetro tronco', p.diametro_tronco_cm],
-            ['Altura', p.altura_m],
-            ['Diámetro copa', p.diametro_copa_m],
-            ['Sección', p.seccion_bosque],
-            ['Subzona', p.subzona],
-            ['Inventario', p.inventario],
-        ];
-        const rowsHtml = rows
-            .filter(([k, v]) => v != null && v !== '')
-            .map(([k, v]) => `<tr><td class="text-muted" style="width:40%"><small>${escape(k)}</small></td><td><small>${escape(v)}</small></td></tr>`)
-            .join('');
-        return `<div class="mb-2"><strong>${title}</strong>
+    function featureCard(f, label) {
+        if (!f) return '';
+        const p = f.getProperties ? f.getProperties() : (f.properties || {});
+        const geom = f.getGeometry ? f.getGeometry() : null;
+        const geomType = geom ? geom.getType() : 'Entidad';
+        const title = label || p.nombre || p.name || p.id || `Elemento ${geomType}`;
+        const ignored = ['geometry', 'features', 'style', 'subzona'];
+        
+        let rowsHtml = '';
+        for (const [k, v] of Object.entries(p)) {
+            if (ignored.includes(k) || v == null || typeof v === 'object') continue;
+            rowsHtml += `<tr><td class="text-muted" style="width:40%;"><small>${escape(k)}</small></td><td><small>${escape(v)}</small></td></tr>`;
+        }
+        
+        if (!rowsHtml) {
+            rowsHtml = `<tr><td class="text-muted"><small>Tipo de entidad</small></td><td><small>${escape(geomType)}</small></td></tr>`;
+        }
+
+        return `<div class="mb-2"><strong>📍 ${escape(title)}</strong>
             <table class="table table-sm table-bordered mb-0">${rowsHtml}</table></div>`;
     }
 
-    function subzonaCard(f, label) {
-        const p = f.getProperties();
-        const lbl = label || 'Subzonas del Bosque';
-        return `<div class="mb-2"><strong>🗺️ ${lbl}: ${escape(p.subzona || '')}</strong>
-            <table class="table table-sm table-bordered mb-0">
-                <tr><td class="text-muted"><small>Nombre</small></td><td><small>${escape(p.nombre || '')}</small></td></tr>
-                <tr><td class="text-muted"><small>Área</small></td><td><small>${escape(p.area || '')}</small></td></tr>
-                <tr><td class="text-muted"><small>Población arbórea</small></td><td><small>${escape(p.poblacion || '')}</small></td></tr>
-                <tr><td class="text-muted"><small>Almacén carbono</small></td><td><small>${escape(p.almacen_carbono || '')}</small></td></tr>
-                <tr><td class="text-muted"><small>Captura carbono</small></td><td><small>${escape(p.captura_carbono || '')}</small></td></tr>
-                <tr><td class="text-muted"><small>Reducción escorrentía</small></td><td><small>${escape(p.reduccion_escorrentia || '')}</small></td></tr>
-                <tr><td class="text-muted"><small>Valor servicios</small></td><td><small>${escape(p.valor_servicios_mxn || '')}</small></td></tr>
-            </table></div>`;
-    }
+    function treeCard(f) { return featureCard(f); }
+    function subzonaCard(f, label) { return featureCard(f, label); }
 
     function showTreeInfo(f) {
         renderInfo([{ tipo: 'arbol', feature: f, source: 'arboles' }]);
@@ -1816,6 +1903,7 @@
                 zIndex: 999,
                 title: 'Trayectoria Vuelo Video GPS'
             });
+            window.__flightVectorLayer = flightVectorLayer;
         }
         const m = getMap();
         if (m && flightVectorLayer && !m.getLayers().getArray().includes(flightVectorLayer)) {
@@ -2221,6 +2309,13 @@
                 });
                 fotosLayer.set('name', 'fotos');
                 m.addLayer(fotosLayer);
+                window.__fotosLayer = fotosLayer;
+                overlays['fotos'] = {
+                    layer: fotosLayer,
+                    info: CFG.OVERLAY_LAYERS['fotos'] || { label: 'Fotos y Vistas 360°' },
+                    features: features
+                };
+                renderLayersPanel();
                 console.log('[visor] Capa de fotos cargada con', features.length, 'puntos');
 
                 // Map clicks on features

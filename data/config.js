@@ -34,6 +34,19 @@ window.__CONFIG = {
         ]
     },
     "OVERLAY_LAYERS": {
+        "formas2": {
+            "color": "#10b981",
+            "label": "📐 Zona en revision",
+            "url": "./data/formas2.geojson?v=3",
+            "visible": true
+        },
+        "curvas_nivel": {
+            "type": "contour",
+            "color": "#0077b6",
+            "label": "📈 Curvas de nivel 1.0m",
+            "url": "./data/curvas_nivel.geojson?v=2",
+            "visible": true
+        },
         "fotos": {
             "color": "#ffb703",
             "label": "📸 Fotos y Vistas 360°",
