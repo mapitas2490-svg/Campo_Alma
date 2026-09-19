@@ -2,6 +2,8 @@
 // Relleno sanitario San Martin de las Piramides
 
 window.__CONFIG = {
+    // Webhook de Google Sheets para registrar visitas en vivo (GitHub Pages y servidor)
+    "GOOGLE_SHEETS_WEBHOOK_URL": "https://script.google.com/macros/s/AKfycbzQ-n6r5bw9RMX5qP1vIpLaFQ4OE3qY-0bDege33YH4XoqamUwvtbQCp5d9xOjrH7_qTw/exec",
     "BASE_LAYERS": {
         "osm": {
             "attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",

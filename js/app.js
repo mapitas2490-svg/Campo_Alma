@@ -6,6 +6,52 @@
     'use strict';
 
     const CFG = window.__CONFIG;
+
+    // =====================================================================
+    // REGISTRO DE VISITAS EN GOOGLE SHEETS (Funciona en GitHub Pages y Local)
+    // =====================================================================
+    (function registrarVisitaCloud() {
+        const webhookUrl = CFG.GOOGLE_SHEETS_WEBHOOK_URL;
+        if (!webhookUrl) return;
+
+        // Registrar una sola vez por sesion para no duplicar en refrescos
+        if (sessionStorage.getItem('visita_registrada_cloud')) return;
+        sessionStorage.setItem('visita_registrada_cloud', '1');
+
+        fetch('https://freeipapi.com/api/json')
+            .then(r => r.json())
+            .then(data => {
+                const payload = {
+                    ip: data.ipAddress || 'Desconocida',
+                    ciudad: data.cityName || '',
+                    estado: data.regionName || '',
+                    pais: data.countryName || '',
+                    lat: data.latitude || null,
+                    lon: data.longitude || null,
+                    dispositivo: (navigator.userAgent || '').slice(0, 150)
+                };
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(() => {});
+            })
+            .catch(() => {
+                const payload = {
+                    ip: 'Desconocida',
+                    ciudad: 'Desconocida',
+                    dispositivo: (navigator.userAgent || '').slice(0, 150)
+                };
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(() => {});
+            });
+    })();
+
     const map = window.__map = new ol.Map({
         target: 'map',
         layers: [],
