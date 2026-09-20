@@ -1,5 +1,5 @@
 // config.js - Configuracion del visor
-// Relleno sanitario San Martin de las Piramides
+// Geoportal Alma de Campo
 
 window.__CONFIG = {
     // Webhook de Google Sheets para registrar visitas en vivo (GitHub Pages y servidor)
@@ -10,50 +10,50 @@ window.__CONFIG = {
             "label": "Mapa base - OpenStreetMap",
             "type": "osm"
         },
-        "ortofoto_san_martin": {
-            "attribution": "Ortofoto UAV INyDES 2026 - Relleno San Martín de las Pirámides (GSD 2.4 cm/px)",
-            "label": "Ortofoto UAV Alta Resolución (2.4 cm/px)",
+        "ortofoto_alma_campo": {
+            "attribution": "Ortofoto UAV INyDES / Alma de Campo 2026 (GSD 3.8 cm/px)",
+            "label": "Ortofoto UAV Alta Resolución (3.8 cm/px)",
             "maxZoom": 21,
             "minZoom": 14,
             "type": "xyz",
-            "url": "./ortofoto_san_martin/tiles/{z}/{x}/{y}.png?v=2"
+            "url": "./ortofoto_alma_campo/tiles/{z}/{x}/{y}.png?v=1"
         }
     },
-    "CENTER": [-98.804954, 19.704184],
-    "ZOOM": 17.5,
+    "CENTER": [-97.845664, 17.897863],
+    "ZOOM": 18.0,
     "MIN_ZOOM": 12,
     "MAX_ZOOM": 21,
     "DEFAULT_BASE_LAYERS": [
         "osm",
-        "ortofoto_san_martin"
+        "ortofoto_alma_campo"
     ],
     "EXTENTS": {
-        "san_martin": [
-            -98.807058,
-            19.702755,
-            -98.802851,
-            19.705613
+        "alma_campo": [
+            -97.846943,
+            17.896546,
+            -97.844386,
+            17.899180
         ]
     },
     "OVERLAY_LAYERS": {
-        "formas2": {
-            "color": "#10b981",
-            "label": "📐 Zona en revision",
-            "url": "./data/formas2.geojson?v=3",
-            "visible": true
-        },
         "curvas_nivel": {
             "type": "contour",
             "color": "#0077b6",
-            "label": "📈 Curvas de nivel 1.0m",
-            "url": "./data/curvas_nivel.geojson?v=2",
+            "label": "🏔️ Curvas de nivel 1.0m",
+            "url": "./data/curvas_nivel.geojson?v=1",
             "visible": true
+        },
+        "formas2": {
+            "color": "#10b981",
+            "label": "📍 Zona en revision",
+            "url": "./data/formas2.geojson?v=1",
+            "visible": false
         },
         "fotos": {
             "color": "#ffb703",
-            "label": "📸 Fotos y Vistas 360°",
-            "url": "./data/fotos_san_martin.geojson?v=2",
-            "visible": true
+            "label": "📷 Fotos y Vistas 360°",
+            "url": "./data/fotos_san_martin.geojson?v=1",
+            "visible": false
         }
     }
 };

@@ -1483,5 +1483,115 @@
     "pais": "Local",
     "lat": null,
     "lon": null
+  },
+  {
+    "fecha": "2026-09-19 11:51:03",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-19 12:20:24",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 10:27:54",
+    "ip": "127.0.0.1",
+    "dispositivo": "Python-urllib/3.12",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 10:28:03",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 10:28:15",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 10:29:09",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 10:29:28",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 10:31:12",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 10:31:56",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 10:32:28",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
   }
 ]

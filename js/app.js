@@ -79,7 +79,7 @@
     // Centrado inteligente para visualizar el ortomosaico del Relleno San Martín de las Pirámides
     function fitSanMartin(duration = 0) {
         const ext = ol.proj.transformExtent(
-            CFG.EXTENTS?.san_martin || [-98.807058, 19.702755, -98.802851, 19.705613],
+            CFG.EXTENTS?.alma_campo || [-97.846943, 17.896546, -97.844386, 17.899180],
             'EPSG:4326',
             'EPSG:3857'
         );
@@ -106,7 +106,7 @@
     const baseLayers = {};
     const userEnabledBases = {
         'osm': true,
-        'ortofoto_san_martin': true
+        'ortofoto_alma_campo': true
     };
 
     // Crear capas base con zIndex apropiado
@@ -178,8 +178,8 @@
     }
 
     function getContourColor(elev) {
-        const minZ = 2300.0;
-        const maxZ = 2316.0;
+        const minZ = 1915.0;
+        const maxZ = 1950.0;
         const ratio = Math.max(0, Math.min(1, (elev - minZ) / (maxZ - minZ)));
         if (ratio < 0.25) {
             return interpolateColor('#0077b6', '#06d6a0', ratio / 0.25);
@@ -479,9 +479,9 @@
                     <small class="text-muted fw-semibold">Capas base:</small>
                 </div>
                 <div class="form-check mb-1">
-                    <input class="form-check-input" type="checkbox" id="base-ortofoto_san_martin" ${userEnabledBases['ortofoto_san_martin'] ? 'checked' : ''}>
-                    <label class="form-check-label fw-bold text-success" for="base-ortofoto_san_martin" style="font-size:0.85rem;cursor:pointer;">
-                        🚁 Ortofoto San Martín (2.4 cm/px)
+                    <input class="form-check-input" type="checkbox" id="base-ortofoto_alma_campo" ${userEnabledBases['ortofoto_san_martin'] ? 'checked' : ''}>
+                    <label class="form-check-label fw-bold text-success" for="base-ortofoto_alma_campo" style="font-size:0.85rem;cursor:pointer;">
+                        🚁 Ortofoto Alma de Campo (3.8 cm/px)
                     </label>
                 </div>
                 <div class="form-check mb-1">
@@ -527,8 +527,8 @@ ${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
                     ` + (name === 'curvas_nivel' ? `
                     <div class="px-2 py-1 rounded mt-1 mb-2 border shadow-sm" style="background:rgba(255,255,255,0.9); font-size:10px;">
                         <div class="d-flex justify-content-between fw-bold mb-1" style="color:#1b4d3e;">
-                            <span>Altimetría: 2,300 m</span>
-                            <span>2,316 m</span>
+                            <span>Altimetría: 1,915 m</span>
+                            <span>1,950 m</span>
                         </div>
                         <div style="height:8px; border-radius:4px; background:linear-gradient(to right, #0077b6 0%, #06d6a0 25%, #ffd166 50%, #f77f00 75%, #d62828 100%);"></div>
                         <div class="d-flex justify-content-between text-muted mt-1" style="font-size:9px;">
@@ -2356,12 +2356,12 @@ ${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
                 fotosLayer.set('name', 'fotos');
                 m.addLayer(fotosLayer);
                 window.__fotosLayer = fotosLayer;
-                overlays['fotos'] = {
+                if (typeof overlays !== 'undefined') overlays['fotos'] = {
                     layer: fotosLayer,
                     info: CFG.OVERLAY_LAYERS['fotos'] || { label: 'Fotos y Vistas 360°' },
                     features: features
                 };
-                renderLayersPanel();
+                if (typeof renderLayersPanel === 'function') renderLayersPanel();
                 console.log('[visor] Capa de fotos cargada con', features.length, 'puntos');
 
                 // Map clicks on features

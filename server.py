@@ -1,7 +1,7 @@
 """
 Servidor HTTP multi-hilo con charset=utf-8 en Content-Type
 Soporta peticiones concurrentes, Streaming 206 para Video MP4 y Registro de Visitas con Geolocalización.
-Relleno sanitario San Martin de las Piramides
+Geoportal Alma de Campo
 """
 import http.server
 import os
@@ -13,7 +13,7 @@ import urllib.request
 from datetime import datetime
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
-DIR = r"F:\geoportal_Relleno_San_Martin\visor_web_export"
+DIR = os.path.dirname(os.path.abspath(__file__))
 VIDEO_PATH = os.path.join(DIR, "data", "video.mp4")
 VISITAS_FILE = os.path.join(DIR, "data", "visitas.json")
 

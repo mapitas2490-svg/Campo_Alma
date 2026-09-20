@@ -1,0 +1,32 @@
+{
+  "instructions_es": [
+    "1. Levantar servidor local en la carpeta de salida:",
+    "     cd F:\\geoportal_Alma_Campo\\visor_web_export\\ortofoto_alma_campo",
+    "     python -m http.server 8000",
+    "2. En JOSM: Edit > Preferences > Imagery > + (Custom)",
+    "3. Pegar uno de los url de abajo como 'Tile URL'",
+    "4. Name: Ortofoto Alma de Campo",
+    "5. Attribution: Ortofoto UAV INyDES / Alma de Campo 2026",
+    "6. Max zoom: 21"
+  ],
+  "tile_url_examples": {
+    "local_server": "http://localhost:8000/tiles/{z}/{x}/{y}.png",
+    "static_export": "tiles/{z}/{x}/{y}.png",
+    "github_pages_example": "https://<TU_USUARIO>.github.io/<TU_REPO>/tiles/{z}/{x}/{y}.png"
+  },
+  "josm_preferences_snippet": {
+    "_comment": "Pegar bajo imagery.layers en preferencias de JOSM",
+    "name": "Ortofoto Alma de Campo",
+    "type": "tms",
+    "url": "http://localhost:8000/tiles/{z}/{x}/{y}.png",
+    "min_zoom": 15,
+    "max_zoom": 21,
+    "attribution": "Ortofoto UAV INyDES / Alma de Campo 2026",
+    "bbox": {
+      "min_lon": -97.84694251260551,
+      "min_lat": 17.89654632818153,
+      "max_lon": -97.8443854522819,
+      "max_lat": 17.89918033759941
+    }
+  }
+}

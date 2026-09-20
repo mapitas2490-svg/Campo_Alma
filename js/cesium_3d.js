@@ -6,12 +6,12 @@
 
     // Token de acceso a Cesium Ion provisto por el usuario
     Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI2NDNjMzAxMS05NGVjLTQ1ZTktYjhjMy1lNDI3NjAwMDJhMjkiLCJpZCI6MTMyMTU4LCJpYXQiOjE2OTA1ODYzMTR9.6r-lijvfml1thVTi8KOI1DnP5vm_5OVjlK-ZKhpFEbI";
-    const CESIUM_ASSET_ID = 5900012;
+    const CESIUM_ASSET_ID = 5902520;
 
     // Coordenadas objetivo solicitadas: 19.703806, -98.805434
-    const TARGET_LON = -98.805434;
-    const TARGET_LAT = 19.703806;
-    const TARGET_ALT = 2305.0; // Elevacion base
+    const TARGET_LON = -97.845664;
+    const TARGET_LAT = 17.897863;
+    const TARGET_ALT = 1930.0; // Elevacion base
 
     let cesiumViewer = null;
     let cesiumTileset = null;
@@ -125,6 +125,11 @@
             const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(CESIUM_ASSET_ID);
             cesiumViewer.scene.primitives.add(tileset);
             cesiumTileset = tileset;
+            try {
+                await cesiumViewer.zoomTo(tileset);
+            } catch(zErr) {
+                console.warn('[Cesium 3D] Error en zoomTo tileset:', zErr);
+            }
 
             // Aplicar estilo predeterminado si existe en extras
             const extras = tileset.asset?.extras;

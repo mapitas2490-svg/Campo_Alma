@@ -1,0 +1,43 @@
+{
+  "name": "Ortofoto Alma de Campo",
+  "source": "F:\\ALMA\\INEGI_CAMPO\\CAMPO_ORGANIZADO\\agisoft\\LUGAR_05_SUR_26AUG_TARDE.files\\orto\\LUGAR_05_SUR_26AUG_TARDE.jp2",
+  "attribution": "Ortofoto UAV INyDES / Alma de Campo 2026",
+  "tile_size": 256,
+  "min_zoom": 15,
+  "max_zoom": 21,
+  "scheme": "xyz",
+  "format": "png",
+  "bbox_4326": [
+    -97.84694251260551,
+    17.89654632818153,
+    -97.8443854522819,
+    17.89918033759941
+  ],
+  "bbox_3857": [
+    -10892271.816181958,
+    2025443.0187007543,
+    -10891987.165528806,
+    2025751.146884828
+  ],
+  "center_4326": [
+    -97.84566398244371,
+    17.89786333289047
+  ],
+  "crs": "EPSG:3857",
+  "tile_pattern": "{z}/{x}/{y}.png",
+  "stats": {
+    "tiles": 374,
+    "bytes": 54389252,
+    "per_zoom": {
+      "15": 1,
+      "16": 1,
+      "17": 2,
+      "18": 6,
+      "19": 20,
+      "20": 72,
+      "21": 272
+    },
+    "zmax_natural": 5
+  },
+  "generated_at": "2026-09-20T10:26:33-0600"
+}
