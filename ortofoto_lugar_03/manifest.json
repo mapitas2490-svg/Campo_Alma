@@ -1,0 +1,44 @@
+{
+  "name": "LUGAR_03_orto",
+  "source": "F:\\ALMA\\INEGI_CAMPO\\CAMPO_ORGANIZADO\\agisoft\\LUGAR_03_ESTE_25AUG_MEDIODIA.files\\orto\\LUGAR_03_ESTE_25AUG_MEDIODIA.jp2",
+  "attribution": "Ortofoto UAV LUGAR_03 2026 - Resolucion Nativa (2.8 cm/px)",
+  "tile_size": 256,
+  "min_zoom": 15,
+  "max_zoom": 22,
+  "scheme": "xyz",
+  "format": "png",
+  "bbox_4326": [
+    -97.28051770053135,
+    18.260350062701498,
+    -97.27695150019893,
+    18.265737266854284
+  ],
+  "bbox_3857": [
+    -10829217.694529185,
+    2068044.6843593004,
+    -10828820.706924114,
+    2068676.195797891
+  ],
+  "center_4326": [
+    -97.27873460036514,
+    18.26304366477789
+  ],
+  "crs": "EPSG:3857",
+  "tile_pattern": "{z}/{x}/{y}.png",
+  "stats": {
+    "tiles": 3928,
+    "bytes": 353370427,
+    "per_zoom": {
+      "15": 2,
+      "16": 4,
+      "17": 6,
+      "18": 20,
+      "19": 63,
+      "20": 204,
+      "21": 748,
+      "22": 2881
+    },
+    "zmax_natural": 7
+  },
+  "generated_at": "2026-09-20T17:35:24-0600"
+}

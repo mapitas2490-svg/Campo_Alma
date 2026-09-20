@@ -486,9 +486,9 @@
         if (type === 'group') {
             siteId = name;
         } else if (type === 'base') {
-            siteId = CFG.BASE_LAYERS[name]?.groupId || (name.startsWith('LUGAR_01') ? 'LUGAR_01' : 'LUGAR_05');
+            siteId = CFG.BASE_LAYERS[name]?.groupId || (name.startsWith('LUGAR_01') ? 'LUGAR_01' : (name.startsWith('LUGAR_03') ? 'LUGAR_03' : 'LUGAR_05'));
         } else if (type === 'overlay') {
-            siteId = CFG.OVERLAY_LAYERS[name]?.groupId || (name.startsWith('LUGAR_01') ? 'LUGAR_01' : 'LUGAR_05');
+            siteId = CFG.OVERLAY_LAYERS[name]?.groupId || (name.startsWith('LUGAR_01') ? 'LUGAR_01' : (name.startsWith('LUGAR_03') ? 'LUGAR_03' : 'LUGAR_05'));
         }
         if (siteId) {
             window.__activeSiteId = siteId;
@@ -629,7 +629,7 @@
     }
 
     // Estado persistente del acordeón de grupos (+ y -)
-    const groupCollapseState = window.__groupCollapseState || { 'LUGAR_01': true, 'LUGAR_05': true };
+    const groupCollapseState = window.__groupCollapseState || { 'LUGAR_01': true, 'LUGAR_03': true, 'LUGAR_05': true };
     window.__groupCollapseState = groupCollapseState;
 
     function toggleGroupAccordion(groupId) {
@@ -697,7 +697,7 @@
                                         🗺️ ${escapeHtml(ortoId)}
                                     </label>
                                 </div>
-                                <span class="badge text-bg-light border text-muted" style="font-size:0.68rem;">${(ortoId.includes('01') ? '2.9 cm/px (Nativa)' : '3.7 cm/px (Nativa)')}</span>
+                                <span class="badge text-bg-light border text-muted" style="font-size:0.68rem;">${(ortoId.includes('01') ? '2.9 cm/px (Nativa)' : (ortoId.includes('03') ? '2.8 cm/px (Nativa)' : '3.7 cm/px (Nativa)'))}</span>
                             </div>
 
                             <!-- 2. Curvas de nivel -->

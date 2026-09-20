@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>LUGAR_03_orto - Visor de prueba</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    html, body, #map { height: 100%; margin: 0; }
+    .attr { background: rgba(255,255,255,0.8); padding: 2px 6px; font-size: 11px; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  var bounds = [[18.260350062701498, -97.28051770053135], [18.265737266854284, -97.27695150019893]];
+  var map = L.map('map', { maxBounds: bounds, maxZoom: 22 });
+  L.tileLayer('./tiles/{z}/{x}/{y}.png', {
+    minZoom: 15,
+    maxZoom: 22,
+    maxNativeZoom: 22,
+    tms: false,
+    attribution: "Ortofoto UAV LUGAR_03 2026 - Resolucion Nativa (2.8 cm/px)"
+  }).addTo(map);
+  map.fitBounds(bounds);
+</script>
+</body>
+</html>

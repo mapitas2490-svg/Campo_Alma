@@ -163,6 +163,7 @@
             // Configurar y cargar modelos 3D para cada sitio registrado en GROUPS
             const siteEntries = Object.entries(window.__CONFIG?.GROUPS || {
                 'LUGAR_01': { cesiumAssetId: 5902582, center: [-97.671539, 18.566815], altitude: 2120.0 },
+                'LUGAR_03': { cesiumAssetId: 5902658, center: [-97.278735, 18.263044], altitude: 1155.0 },
                 'LUGAR_05': { cesiumAssetId: 5902520, center: [-97.845664, 17.897863], altitude: 1930.0 }
             });
 
@@ -346,6 +347,57 @@
                 console.log('[Cesium 3D] Curvas LUGAR_01 registradas (2103-2140m).');
             } catch (errCn01) {
                 console.warn('[Cesium 3D] No se cargaron curvas LUGAR_01 en 3D:', errCn01);
+            }
+
+            // 2c. Capa Curvas de Nivel LUGAR_03 (1142m - 1167m) en 3D
+            try {
+                const cn03Source = await Cesium.GeoJsonDataSource.load('./data/lugar_03_curvas.geojson?v=1', {
+                    clampToGround: true
+                });
+                const entities03 = cn03Source.entities.values.slice();
+                const minZ03 = 1142.0;
+                const maxZ03 = 1167.0;
+
+                for (let i = 0; i < entities03.length; i++) {
+                    const entity = entities03[i];
+                    const elev = entity.properties.elev ? Number(entity.properties.elev.getValue()) : 1155;
+                    const isMaster = entity.properties.is_master ? Boolean(entity.properties.is_master.getValue()) : (Math.round(elev * 10) % 50 === 0);
+
+                    const ratio = Math.max(0, Math.min(1, (elev - minZ03) / (maxZ03 - minZ03)));
+                    let col;
+                    if (ratio < 0.25) col = Cesium.Color.fromCssColorString('#0077b6');
+                    else if (ratio < 0.50) col = Cesium.Color.fromCssColorString('#06d6a0');
+                    else if (ratio < 0.75) col = Cesium.Color.fromCssColorString('#ffd166');
+                    else if (ratio < 0.75) col = Cesium.Color.fromCssColorString('#f77f00');
+                    else col = Cesium.Color.fromCssColorString('#d62828');
+
+                    if (entity.polyline) {
+                        entity.polyline.material = col;
+                        entity.polyline.width = isMaster ? 3.0 : 1.5;
+                        entity.polyline.clampToGround = true;
+                    }
+
+                    entity.name = `Curva de nivel ${elev} msnm`;
+                    entity.description = `
+                        <div style="font-family:sans-serif;padding:8px;line-height:1.4;">
+                            <div style="background:#435363;color:#fff;padding:6px 10px;border-radius:4px;margin-bottom:8px;font-weight:bold;">
+                                📈 Altimetría LUGAR_03: ${elev} msnm
+                            </div>
+                            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+                                <tr><td style="padding:3px;font-weight:bold;color:#555;">Cota:</td><td>${elev} msnm</td></tr>
+                                <tr><td style="padding:3px;font-weight:bold;color:#555;">Clasificación:</td><td>${isMaster ? 'Curva Maestra (cada 5m)' : 'Curva Ordinaria (1m)'}</td></tr>
+                                <tr><td style="padding:3px;font-weight:bold;color:#555;">Rango zona:</td><td>1,142 m - 1,167 m</td></tr>
+                            </table>
+                        </div>
+                    `;
+                }
+
+                cn03Source.show = false; // Siempre apagado en 3D por defecto
+                cesiumViewer.dataSources.add(cn03Source);
+                cesiumLayers['LUGAR_03_curva'] = cn03Source;
+                console.log('[Cesium 3D] Curvas LUGAR_03 registradas (1142-1167m).');
+            } catch (errCn03) {
+                console.warn('[Cesium 3D] No se cargaron curvas LUGAR_03 en 3D:', errCn03);
             }
 
             // 3. Capa Fotos y Vistas 360 - APAGADA POR DEFECTO

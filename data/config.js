@@ -13,7 +13,8 @@ window.__CONFIG = {
     "DEFAULT_BASE_LAYERS": [
         "osm",
         "LUGAR_01_orto",
-        "LUGAR_05_orto"
+        "LUGAR_05_orto",
+        "LUGAR_03_orto"
     ],
     "EXTENTS": {
         "campo": [
@@ -33,6 +34,12 @@ window.__CONFIG = {
             17.896546,
             -97.844386,
             17.89918
+        ],
+        "LUGAR_03": [
+            -97.280518,
+            18.26035,
+            -97.276951,
+            18.265737
         ]
     },
     "BASE_LAYERS": {
@@ -42,7 +49,7 @@ window.__CONFIG = {
             "type": "osm"
         },
         "LUGAR_01_orto": {
-            "attribution": "Ortofoto UAV LUGAR_01 - Resoluci\u00f3n Nativa (2.9 cm/px)",
+            "attribution": "Ortofoto UAV LUGAR_01 - Resolución Nativa (2.9 cm/px)",
             "label": "LUGAR_01_orto (2.9 cm/px Nativa)",
             "maxZoom": 24,
             "minZoom": 14,
@@ -51,13 +58,22 @@ window.__CONFIG = {
             "groupId": "LUGAR_01"
         },
         "LUGAR_05_orto": {
-            "attribution": "Ortofoto UAV LUGAR_05 - Resoluci\u00f3n Nativa (3.7 cm/px)",
+            "attribution": "Ortofoto UAV LUGAR_05 - Resolución Nativa (3.7 cm/px)",
             "label": "LUGAR_05_orto (3.7 cm/px Nativa)",
             "maxZoom": 24,
             "minZoom": 14,
             "type": "xyz",
             "url": "./ortofoto_alma_campo/tiles/{z}/{x}/{y}.png?v=3",
             "groupId": "LUGAR_05"
+        },
+        "LUGAR_03_orto": {
+            "attribution": "Ortofoto UAV LUGAR_03 - Resolución Nativa (2.8 cm/px)",
+            "label": "LUGAR_03_orto (2.8 cm/px Nativa)",
+            "maxZoom": 24,
+            "minZoom": 14,
+            "type": "xyz",
+            "url": "./ortofoto_lugar_03/tiles/{z}/{x}/{y}.png?v=1",
+            "groupId": "LUGAR_03"
         }
     },
     "OVERLAY_LAYERS": {
@@ -81,6 +97,17 @@ window.__CONFIG = {
             "groupId": "LUGAR_05",
             "minAlt": 1915,
             "maxAlt": 1950,
+            "step": 1.0
+        },
+        "LUGAR_03_curva": {
+            "type": "contour",
+            "color": "#0077b6",
+            "label": "LUGAR_03_curva",
+            "url": "./data/lugar_03_curvas.geojson?v=1",
+            "visible": true,
+            "groupId": "LUGAR_03",
+            "minAlt": 1142,
+            "maxAlt": 1167,
             "step": 1.0
         }
     },
@@ -142,6 +169,36 @@ window.__CONFIG = {
                     "type": "overlay",
                     "kind": "curva",
                     "label": "LUGAR_05_curva"
+                }
+            ]
+        },
+        "LUGAR_03": {
+            "id": "LUGAR_03",
+            "label": "LUGAR_03",
+            "extent": [
+                -97.280518,
+                18.26035,
+                -97.276951,
+                18.265737
+            ],
+            "center": [
+                -97.278735,
+                18.263044
+            ],
+            "altitude": 1155.0,
+            "cesiumAssetId": 5902658,
+            "layers": [
+                {
+                    "id": "LUGAR_03_orto",
+                    "type": "base",
+                    "kind": "orto",
+                    "label": "LUGAR_03_orto"
+                },
+                {
+                    "id": "LUGAR_03_curva",
+                    "type": "overlay",
+                    "kind": "curva",
+                    "label": "LUGAR_03_curva"
                 }
             ]
         }
