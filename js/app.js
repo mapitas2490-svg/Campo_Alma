@@ -651,9 +651,7 @@
         if (ovPanel) {
             const groups = Object.entries(CFG.GROUPS || {});
             ovPanel.innerHTML = `
-                <div class="mb-2 d-flex align-items-center justify-content-between">
-                    <small class="text-muted fw-semibold">Sitios y Capas Agrupadas:</small>
-                </div>
+
                 ${groups.map(([groupId, grp]) => {
                     const ortoLayer = grp.layers.find(l => l.kind === 'orto' || l.id.endsWith('_orto'));
                     const curvaLayer = grp.layers.find(l => l.kind === 'curva' || l.id.endsWith('_curva'));
