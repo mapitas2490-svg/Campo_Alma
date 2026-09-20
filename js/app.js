@@ -482,6 +482,18 @@
         let altitude = 1930.0;
         let siteId = null;
 
+        // Determinar siteId
+        if (type === 'group') {
+            siteId = name;
+        } else if (type === 'base') {
+            siteId = CFG.BASE_LAYERS[name]?.groupId || (name.startsWith('LUGAR_01') ? 'LUGAR_01' : 'LUGAR_05');
+        } else if (type === 'overlay') {
+            siteId = CFG.OVERLAY_LAYERS[name]?.groupId || (name.startsWith('LUGAR_01') ? 'LUGAR_01' : 'LUGAR_05');
+        }
+        if (siteId) {
+            window.__activeSiteId = siteId;
+        }
+
         if (type === 'group' || (CFG.GROUPS && CFG.GROUPS[name])) {
             siteId = name;
             const grp = CFG.GROUPS[name];
@@ -537,14 +549,14 @@
             return;
         }
 
-        // Modo 2D con OpenLayers
+        // Modo 2D con OpenLayers (permitiendo zoom profundo de alta resolucion)
         const ext3857 = ol.proj.transformExtent(extent4326, 'EPSG:4326', 'EPSG:3857');
         const sidebarEl = document.querySelector('.visor-sidebar');
         const padLeft = (sidebarEl && sidebarEl.offsetWidth > 0) ? sidebarEl.offsetWidth + 30 : 40;
         map.getView().fit(ext3857, {
             padding: [40, 50, 40, padLeft],
             duration: 800,
-            maxZoom: 19
+            maxZoom: 23
         });
     }
 
@@ -665,7 +677,7 @@
                                         🗺️ ${escapeHtml(ortoId)}
                                     </label>
                                 </div>
-                                <span class="badge text-bg-light border text-muted" style="font-size:0.68rem;">3.8 cm/px</span>
+                                <span class="badge text-bg-light border text-muted" style="font-size:0.68rem;">${(ortoId.includes('01') ? '2.9 cm/px (Nativa)' : '3.7 cm/px (Nativa)')}</span>
                             </div>
 
                             <!-- 2. Curvas de nivel -->

@@ -47,16 +47,30 @@
 
     function zoomToSite(siteId, duration = 1.0) {
         if (!cesiumViewer) return;
-        if (window.__cesiumTilesets && window.__cesiumTilesets[siteId]) {
+        window.__activeSiteId = siteId;
+        const grp = (window.__CONFIG && window.__CONFIG.GROUPS && window.__CONFIG.GROUPS[siteId]) || null;
+        const ts = window.__cesiumTilesets && window.__cesiumTilesets[siteId];
+
+        if (ts) {
             try {
-                cesiumViewer.zoomTo(window.__cesiumTilesets[siteId]);
-                console.log(`[Cesium 3D] Zoom a tileset ${siteId}`);
+                cesiumViewer.zoomTo(ts, new Cesium.HeadingPitchRange(
+                    Cesium.Math.toRadians(15.0),
+                    Cesium.Math.toRadians(-45.0),
+                    0
+                )).then(() => {
+                    console.log(`[Cesium 3D] Zoom completado a tileset ${siteId}`);
+                }).catch(err => {
+                    console.warn(`[Cesium 3D] Fallback de zoom para ${siteId}:`, err);
+                    if (grp && grp.center) {
+                        focusTargetCoordinates(duration, grp.center[0], grp.center[1], grp.altitude);
+                    }
+                });
                 return;
             } catch (e) {
-                console.warn('[Cesium 3D] Error en zoomTo tileset:', e);
+                console.warn(`[Cesium 3D] Excepcion en zoomTo ${siteId}:`, e);
             }
         }
-        const grp = (window.__CONFIG && window.__CONFIG.GROUPS && window.__CONFIG.GROUPS[siteId]) || null;
+
         if (grp && grp.center) {
             focusTargetCoordinates(duration, grp.center[0], grp.center[1], grp.altitude || TARGET_ALT);
         } else {
@@ -358,11 +372,10 @@
                 console.warn('[Cesium 3D] No se cargaron fotos en 3D:', errFotos);
             }
 
-            // Enfocar exactamente en las coordenadas: 19.703806, -98.805434
-            focusTargetCoordinates(0);
-            setTimeout(() => focusTargetCoordinates(0), 300);
-
-            console.log('[Cesium 3D] Modelo 3D cargado y enfocado en 19.703806, -98.805434');
+            // Enfocar en el sitio activo (LUGAR_01 o LUGAR_05)
+            const initialSite = window.__activeSiteId || 'LUGAR_01';
+            zoomToSite(initialSite, 0);
+            console.log(`[Cesium 3D] Modelo 3D listo y enfocado en ${initialSite}`);
 
         } catch (error) {
             console.error('[Cesium 3D] Error cargando modelo 3D:', error);
@@ -439,7 +452,8 @@
                 initCesiumViewer();
             } else {
                 cesiumViewer.resize();
-                focusTargetCoordinates(0.5);
+                const activeSite = window.__activeSiteId || 'LUGAR_01';
+                zoomToSite(activeSite, 0.8);
             }
         } else {
             // Regreso a 2D: restaurar checkboxes y visibilidad 2D previa

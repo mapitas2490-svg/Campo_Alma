@@ -9,7 +9,7 @@ window.__CONFIG = {
     ],
     "ZOOM": 17.5,
     "MIN_ZOOM": 12,
-    "MAX_ZOOM": 21,
+    "MAX_ZOOM": 24,
     "DEFAULT_BASE_LAYERS": [
         "osm",
         "LUGAR_01_orto",
@@ -42,18 +42,18 @@ window.__CONFIG = {
             "type": "osm"
         },
         "LUGAR_01_orto": {
-            "attribution": "Ortofoto UAV LUGAR_01 2026 (GSD 3.8 cm/px)",
-            "label": "LUGAR_01_orto",
-            "maxZoom": 21,
+            "attribution": "Ortofoto UAV LUGAR_01 - Resoluci\u00f3n Nativa (2.9 cm/px)",
+            "label": "LUGAR_01_orto (2.9 cm/px Nativa)",
+            "maxZoom": 24,
             "minZoom": 14,
             "type": "xyz",
             "url": "./ortofoto_lugar_01/tiles/{z}/{x}/{y}.png?v=1",
             "groupId": "LUGAR_01"
         },
         "LUGAR_05_orto": {
-            "attribution": "Ortofoto UAV LUGAR_05 2026 (GSD 3.8 cm/px)",
-            "label": "LUGAR_05_orto",
-            "maxZoom": 21,
+            "attribution": "Ortofoto UAV LUGAR_05 - Resoluci\u00f3n Nativa (3.7 cm/px)",
+            "label": "LUGAR_05_orto (3.7 cm/px Nativa)",
+            "maxZoom": 24,
             "minZoom": 14,
             "type": "xyz",
             "url": "./ortofoto_alma_campo/tiles/{z}/{x}/{y}.png?v=2",
