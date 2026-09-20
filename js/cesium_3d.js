@@ -235,8 +235,7 @@
 
                 // Sincronizar visibilidad con el estado del panel en 2D
                 const cnCheckbox = document.getElementById('ov-curvas_nivel');
-                const shouldShow = cnCheckbox ? cnCheckbox.checked : true;
-                cnSource.show = shouldShow;
+                cnSource.show = false; // Siempre apagado en 3D por defecto
                 cesiumViewer.dataSources.add(cnSource);
                 cesiumLayers['curvas_nivel'] = cnSource;
                 console.log(`[Cesium 3D] Curvas de nivel registradas con altimetria 1915-1950m (visible: ${shouldShow}).`);
@@ -321,13 +320,21 @@
             if (mapEl) mapEl.style.display = 'none';
             if (cesiumEl) cesiumEl.style.display = 'block';
 
-            // Sincronizar capas en 3D reflejando exactamente el estado marcado en el panel
+            // Guardar estado 2D
+            const state2D = {};
             document.querySelectorAll('#overlay-panel input[id^=ov-]').forEach(cb => {
                 const name = cb.id.replace('ov-', '');
-                if (cesiumLayers[name]) {
-                    cesiumLayers[name].show = cb.checked;
-                }
+                state2D[name] = cb.checked;
+                cb.checked = false; // EN 3D SIEMPRE DESMARCADAS TODAS LAS CAPAS
             });
+            window.__saved2DLayerState = state2D;
+
+            // EN 3D SIEMPRE TODAS LAS CAPAS APAGADAS (Solo se visualiza el modelo 3D)
+            for (const key in cesiumLayers) {
+                if (cesiumLayers[key]) {
+                    cesiumLayers[key].show = false;
+                }
+            }
 
             if (!cesiumViewer) {
                 initCesiumViewer();
@@ -336,6 +343,7 @@
                 focusTargetCoordinates(0.5);
             }
         } else {
+            // Regreso a 2D: restaurar checkboxes y visibilidad 2D previa
             btn3d?.classList.remove('active');
             btn2d?.classList.add('active');
 
@@ -347,26 +355,16 @@
                 }
             }
 
-            // Restaurar estado de capas en 2D
             if (window.__saved2DLayerState) {
-                for (const [name, isChecked] of Object.entries(window.__saved2DLayerState)) {
-                    const cb = document.getElementById('ov-' + name);
-                    if (cb) {
-                        cb.checked = isChecked;
-                        const o = window.__overlays && window.__overlays[name];
-                        if (o && o.layer) o.layer.setVisible(isChecked);
-                        if (name === 'fotos' && window.__fotosLayer) {
-                            window.__fotosLayer.setVisible(isChecked);
+                document.querySelectorAll('#overlay-panel input[id^=ov-]').forEach(cb => {
+                    const name = cb.id.replace('ov-', '');
+                    if (window.__saved2DLayerState[name] !== undefined) {
+                        cb.checked = window.__saved2DLayerState[name];
+                        if (typeof window.__set2DLayerVisible === 'function') {
+                            window.__set2DLayerVisible(name, cb.checked);
                         }
                     }
-                }
-                const flightCb = document.getElementById('toggle-flight-layer');
-                if (flightCb && window.__saved2DLayerState['vuelo'] !== undefined) {
-                    flightCb.checked = window.__saved2DLayerState['vuelo'];
-                    if (window.__flightVectorLayer) {
-                        window.__flightVectorLayer.setVisible(window.__saved2DLayerState['vuelo']);
-                    }
-                }
+                });
             }
         }
     }

@@ -504,15 +504,7 @@
                 
                 
                     <!-- Control para prender/apagar Vuelo de inspección -->
-                    <div class="d-flex align-items-center justify-content-between my-1 p-1 rounded border-bottom" style="background:rgba(255,255,255,0.75)">
-                        <div class="form-check mb-0 me-2">
-                            <input class="form-check-input" type="checkbox" id="toggle-flight-layer" checked>
-                            <label class="form-check-label fw-semibold" for="toggle-flight-layer" style="font-size:0.85rem;cursor:pointer">
-                                🛸 Vuelo inspección UAV
-                            </label>
-                        </div>
-                        <span class="badge bg-success shadow-sm" style="font-size:0.65rem;">GPS</span>
-                    </div>
+                    
 
 ${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
                     <div class="d-flex align-items-center justify-content-between my-1 p-1 rounded border-bottom" style="background:rgba(255,255,255,0.7)">
@@ -1192,105 +1184,83 @@ ${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
     // CLICK-TO-IDENTIFY (siempre encuentra el feature mas cercano)
     // =====================================================================
     map.on('click', evt => {
-        // Prioridad 1: Detectar fotos o panoramas 360 al hacer click en el mapa
-        const hitFoto = map.forEachFeatureAtPixel(evt.pixel, (f, l) => {
-            if (f && f.get('tipo')) return f;
-            if (l && l.get('name') === 'fotos') return f;
-        }, { hitTolerance: 18 });
-
-        if (hitFoto && hitFoto.get('tipo')) {
-            if (window.abrirModalFoto) {
-                window.abrirModalFoto(hitFoto.getProperties());
-            }
-            return;
-        }
-
         const visibleOverlayLayers = Object.values(overlays)
             .filter(o => o && o.layer && o.layer.getVisible())
             .map(o => o.layer);
 
-        // 1) Intento directo: features en el pixel + tolerancia 12px
-        let features = [];
-        if (visibleOverlayLayers.length > 0) {
-            const hits = map.getFeaturesAtPixel(evt.pixel, {
-                hitTolerance: 12,
-                layerFilter: (layer) => visibleOverlayLayers.includes(layer)
-            });
-            features = hits || [];
-        }
-
-        // 2) Si no hay hit directo, buscar el feature mas cercano (cualquier distancia)
-        if (!features || features.length === 0) {
-            const coord = evt.coordinate;
-            const closest = [];
-            for (const o of Object.values(overlays)) {
-                if (!o || !o.layer.getVisible()) continue;
-                const src = o.layer.getSource();
-                if (!src) continue;
-                const layerName = o.layer.get('name');
-                let candidates = [];
-                if (src instanceof ol.source.Cluster) {
-                    candidates = src.getFeatures();
-                } else if (src.getFeatures) {
-                    candidates = src.getFeatures();
-                }
-                let best = null, bestDist = Infinity;
-                for (const f of candidates) {
-                    let geom, inner;
-                    if (f.get('features')) {
-                        geom = f.getGeometry();
-                        inner = f.get('features');
-                    } else {
-                        geom = f.getGeometry();
-                        inner = [f];
-                    }
-                    if (!geom) continue;
-                    const d = pointToFeatureDistance(coord, geom);
-                    if (d < bestDist) { bestDist = d; best = { feature: f, inner, geom, layerName }; }
-                }
-                if (best) closest.push(best);
-            }
-            closest.sort((a, b) => pointToFeatureDistance(evt.coordinate, a.geom) - pointToFeatureDistance(evt.coordinate, b.geom));
-            for (const c of closest.slice(0, 3)) {
-                if (c.layerName === 'arboles') {
-                    features.push({
-                        get: (k) => k === 'features' ? c.inner : null,
-                        getGeometry: () => c.geom
-                    });
-                } else {
-                    features.push(c.feature);
-                }
-            }
-        }
-
-        if (features.length === 0) {
-            // No se encontro nada cerca: cerrar panel de informacion
+        if (visibleOverlayLayers.length === 0) {
             closeInfo();
             return;
         }
 
-        // 3) Construir lista de hits: subzonas + cada arbol dentro del cluster
-        //    Ya no hacemos zoom en multi-clusters: el usuario hace zoom manual con los controles
-        const hits = [];
-        for (const f of features) {
-            const inner = f.get('features');
-            if (Array.isArray(inner)) {
-                // Es un cluster (real o fake): agregar CADA arbol interno
-                inner.forEach(sf => hits.push({ tipo: 'arbol', feature: sf, source: 'arboles' }));
-            } else {
-                // Es un feature regular (subzona u otro polygon)
-                hits.push({ tipo: 'subzona', feature: f, source: 'subzonas' });
-            }
-        }
+        // Detección estricta bajo el cursor (tolerancia máxima 8px)
+        const hits = map.getFeaturesAtPixel(evt.pixel, {
+            hitTolerance: 8,
+            layerFilter: (layer) => visibleOverlayLayers.includes(layer)
+        });
 
-        if (hits.length === 0) {
+        if (!hits || hits.length === 0) {
+            // Click en espacio vacío: cerrar inmediatamente panel sin buscar nada lejano
             closeInfo();
             return;
         }
-        renderInfo(hits);
-        // Sincronizar con la tabla del panel inferior si esta abierta
-        syncSelectionWithPanel(hits);
+
+        // Mostrar únicamente la entidad directamente cliqueada
+        renderCleanInfo(hits[0]);
     });
+
+    function renderCleanInfo(feature) {
+        const panel = document.getElementById('info-panel');
+        const content = document.getElementById('info-content');
+        if (!panel || !content || !feature) return;
+
+        const props = feature.getProperties ? feature.getProperties() : {};
+        const elev = props.elev != null ? props.elev : props.ELEVATION;
+        const isMaster = props.is_master != null ? props.is_master : (elev != null && Math.round(elev * 10) % 50 === 0);
+
+        let html = '';
+        if (elev != null) {
+            // Es una curva de nivel de Campo
+            html = `
+                <div class="p-2">
+                    <div class="d-flex align-items-center mb-2 pb-1 border-bottom" style="border-color:#435363 !important;">
+                        <span style="font-size:1.3rem;margin-right:8px;">🏔️</span>
+                        <div>
+                            <strong style="color:#2f3b47;font-size:0.95rem;">Curva de Nivel</strong>
+                            <div class="text-muted" style="font-size:0.75rem;">Altimetría de precisión</div>
+                        </div>
+                    </div>
+                    <table class="table table-sm table-borderless mb-2" style="font-size:0.85rem;">
+                        <tr><th style="width:40%;color:#666;">Elevación:</th><td class="fw-bold" style="color:#435363;font-size:1rem;">${elev} msnm</td></tr>
+                        <tr><th style="color:#666;">Tipo:</th><td><span class="badge ${isMaster ? 'bg-primary' : 'bg-secondary'}">${isMaster ? 'Maestra (5m)' : 'Ordinaria (1m)'}</span></td></tr>
+                        <tr><th style="color:#666;">Zona:</th><td>Campo</td></tr>
+                        <tr><th style="color:#666;">Rango zona:</th><td>1,915 m - 1,950 m</td></tr>
+                    </table>
+                </div>
+            `;
+        } else {
+            // Entidad vectorial genérica o creada por el usuario (KML/SHP)
+            const geom = feature.getGeometry ? feature.getGeometry() : null;
+            const geomType = geom ? geom.getType() : 'Geometría';
+            const title = props.nombre || props.name || `Entidad (${geomType})`;
+            let rows = '';
+            const ignored = ['geometry', 'features', 'style', 'subzona', 'arbol'];
+            for (const [k, v] of Object.entries(props)) {
+                if (ignored.includes(k) || v == null || typeof v === 'object') continue;
+                rows += `<tr><th style="color:#666;width:40%;">${escapeHtml(k)}:</th><td>${escapeHtml(String(v))}</td></tr>`;
+            }
+            html = `
+                <div class="p-2">
+                    <div class="fw-bold mb-2 pb-1 border-bottom" style="color:#2f3b47;">📍 ${escapeHtml(title)}</div>
+                    <table class="table table-sm table-bordered mb-0" style="font-size:0.8rem;">${rows || '<tr><td>Sin atributos adicionales</td></tr>'}</table>
+                </div>
+            `;
+        }
+
+        content.innerHTML = html;
+        panel.removeAttribute('hidden');
+        panel.style.display = 'block';
+    }
 
     // Encuentra el feature del click en la lista filtrada del bottom panel,
     // lo selecciona (fila amarilla) y hace highlight en el mapa.
@@ -2285,106 +2255,7 @@ ${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
         return window.__map || (window.visor && window.visor.map) || null;
     }
 
-    function initFotosSanMartin() {
-        const m = getActiveMap();
-        if (!m) {
-            setTimeout(initFotosSanMartin, 300);
-            return;
-        }
-
-        fetch('./data/fotos_san_martin.geojson?v=' + Date.now())
-            .then(r => r.json())
-            .then(data => {
-                if (!data || !data.features) return;
-                
-                const features = [];
-                data.features.forEach(f => {
-                    const coords = f.geometry.coordinates;
-                    f.properties.coordinates = coords;
-                    fotosDataMap[f.properties.id] = f.properties;
-                    
-                    const geom = new ol.geom.Point(ol.proj.fromLonLat(coords));
-                    const feat = new ol.Feature({
-                        geometry: geom,
-                        ...f.properties
-                    });
-                    features.push(feat);
-                });
-
-                const vectorSource = new ol.source.Vector({ features });
-                
-                // Estilo distintivo para fotos 360 y fotos HD
-                function fotoStyle(feature, resolution) {
-                    const is360 = feature.get('tipo') === 'foto_360';
-                    const title = feature.get('titulo') || '';
-                    
-                    if (is360) {
-                        return new ol.style.Style({
-                            image: new ol.style.Circle({
-                                radius: 15,
-                                fill: new ol.style.Fill({ color: 'rgba(245, 158, 11, 0.95)' }),
-                                stroke: new ol.style.Stroke({ color: '#ffffff', width: 3 })
-                            }),
-                            text: new ol.style.Text({
-                                text: '360°',
-                                font: 'bold 11px sans-serif',
-                                fill: new ol.style.Fill({ color: '#000000' }),
-                                offsetY: 1
-                            })
-                        });
-                    } else {
-                        return new ol.style.Style({
-                            image: new ol.style.Circle({
-                                radius: 13,
-                                fill: new ol.style.Fill({ color: 'rgba(6, 182, 212, 0.95)' }),
-                                stroke: new ol.style.Stroke({ color: '#ffffff', width: 2.5 })
-                            }),
-                            text: new ol.style.Text({
-                                text: '📷',
-                                font: '11px sans-serif',
-                                offsetY: 0
-                            })
-                        });
-                    }
-                }
-
-                fotosLayer = new ol.layer.Vector({
-                    source: vectorSource,
-                    style: fotoStyle,
-                    zIndex: 150
-                });
-                fotosLayer.set('name', 'fotos');
-                m.addLayer(fotosLayer);
-                window.__fotosLayer = fotosLayer;
-                if (typeof overlays !== 'undefined') overlays['fotos'] = {
-                    layer: fotosLayer,
-                    info: CFG.OVERLAY_LAYERS['fotos'] || { label: 'Fotos y Vistas 360°' },
-                    features: features
-                };
-                if (typeof renderLayersPanel === 'function') renderLayersPanel();
-                console.log('[visor] Capa de fotos cargada con', features.length, 'puntos');
-
-                // Map clicks on features
-                m.on('singleclick', function(evt) {
-                    const feature = m.forEachFeatureAtPixel(evt.pixel, (feat, layer) => {
-                        if (layer === fotosLayer || feat.get('tipo')) return feat;
-                    });
-
-                    if (feature && feature.get('tipo')) {
-                        const props = feature.getProperties();
-                        abrirModalFoto(props);
-                    }
-                });
-
-                // Pointer cursor on hover
-                m.on('pointermove', function(e) {
-                    const hit = m.hasFeatureAtPixel(e.pixel, (layer) => layer === fotosLayer);
-                    m.getTargetElement().style.cursor = hit ? 'pointer' : '';
-                });
-            })
-            .catch(err => console.error('[visor] Error cargando fotos_san_martin:', err));
-    }
-
+    function initFotosSanMartin() { return; }
     window.abrirModalFoto = function(props) {
         if (!props) return;
         if (props.tipo === 'foto_360') {

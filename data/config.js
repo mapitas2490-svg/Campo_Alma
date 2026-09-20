@@ -2,7 +2,6 @@
 // Geoportal Campo
 
 window.__CONFIG = {
-    // Webhook de Google Sheets para registrar visitas en vivo (GitHub Pages y servidor)
     "GOOGLE_SHEETS_WEBHOOK_URL": "https://script.google.com/macros/s/AKfycbzQ-n6r5bw9RMX5qP1vIpLaFQ4OE3qY-0bDege33YH4XoqamUwvtbQCp5d9xOjrH7_qTw/exec",
     "BASE_LAYERS": {
         "osm": {
@@ -16,7 +15,7 @@ window.__CONFIG = {
             "maxZoom": 21,
             "minZoom": 14,
             "type": "xyz",
-            "url": "./ortofoto_alma_campo/tiles/{z}/{x}/{y}.png?v=1"
+            "url": "./ortofoto_alma_campo/tiles/{z}/{x}/{y}.png?v=2"
         }
     },
     "CENTER": [-97.845664, 17.897863],
@@ -28,7 +27,7 @@ window.__CONFIG = {
         "ortofoto_alma_campo"
     ],
     "EXTENTS": {
-        "alma_campo": [
+        "campo": [
             -97.846943,
             17.896546,
             -97.844386,
@@ -40,20 +39,8 @@ window.__CONFIG = {
             "type": "contour",
             "color": "#0077b6",
             "label": "🏔️ Curvas de nivel 1.0m",
-            "url": "./data/curvas_nivel.geojson?v=1",
+            "url": "./data/curvas_nivel.geojson?v=2",
             "visible": true
-        },
-        "formas2": {
-            "color": "#10b981",
-            "label": "📍 Zona en revision",
-            "url": "./data/formas2.geojson?v=1",
-            "visible": false
-        },
-        "fotos": {
-            "color": "#ffb703",
-            "label": "📷 Fotos y Vistas 360°",
-            "url": "./data/fotos_san_martin.geojson?v=1",
-            "visible": false
         }
     }
 };
