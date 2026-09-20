@@ -628,6 +628,24 @@
         }
     }
 
+    // Estado persistente del acordeón de grupos (+ y -)
+    const groupCollapseState = window.__groupCollapseState || { 'LUGAR_01': true, 'LUGAR_05': true };
+    window.__groupCollapseState = groupCollapseState;
+
+    function toggleGroupAccordion(groupId) {
+        groupCollapseState[groupId] = !groupCollapseState[groupId];
+        const bodyEl = document.getElementById(`grp-body-${groupId}`);
+        const btnEl = document.querySelector(`.btn-group-toggle-collapse[data-group="${groupId}"]`);
+        const isExp = groupCollapseState[groupId];
+        if (bodyEl) {
+            bodyEl.style.display = isExp ? 'block' : 'none';
+        }
+        if (btnEl) {
+            btnEl.textContent = isExp ? '-' : '+';
+            btnEl.title = isExp ? 'Comprimir grupo' : 'Desplegar grupo';
+        }
+    }
+
     function renderLayersPanel() {
         const ovPanel = document.getElementById('overlay-panel');
         if (ovPanel) {
@@ -635,6 +653,10 @@
             ovPanel.innerHTML = `
                 <div class="mb-2 d-flex align-items-center justify-content-between">
                     <small class="text-muted fw-semibold">Sitios y Capas Agrupadas:</small>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-xs btn-outline-secondary py-0 px-1 shadow-none" id="btn-expand-all-groups" title="Desplegar todos los grupos (+)" style="font-size:0.72rem; font-weight:bold; line-height:1.2;">+ Todo</button>
+                        <button class="btn btn-xs btn-outline-secondary py-0 px-1 shadow-none" id="btn-collapse-all-groups" title="Comprimir todos los grupos (-)" style="font-size:0.72rem; font-weight:bold; line-height:1.2;">- Todo</button>
+                    </div>
                 </div>
                 ${groups.map(([groupId, grp]) => {
                     const ortoLayer = grp.layers.find(l => l.kind === 'orto' || l.id.endsWith('_orto'));
@@ -643,29 +665,33 @@
                     const curvaId = curvaLayer ? curvaLayer.id : `${groupId}_curva`;
                     const isOrtoChecked = !!userEnabledBases[ortoId];
                     const isCurvaChecked = overlays[curvaId] ? overlays[curvaId].layer.getVisible() : (CFG.OVERLAY_LAYERS[curvaId]?.visible !== false);
+                    const isExpanded = (groupCollapseState[groupId] !== false);
 
                     return `
                     <div class="card mb-2 shadow-sm border-0 group-card" style="border-radius: 8px; overflow: hidden; border: 1px solid #d0d7dd !important;">
-                        <!-- Cabecera del Grupo -->
+                        <!-- Cabecera del Grupo Acordeón -->
                         <div class="card-header py-2 px-2 d-flex align-items-center justify-content-between text-white"
-                             style="background: linear-gradient(135deg, #435363 0%, #56697a 100%); cursor: context-menu;"
+                             style="background: linear-gradient(135deg, #435363 0%, #56697a 100%); cursor: pointer;"
                              data-layer-type="group" data-layer-name="${groupId}"
-                             title="Click derecho para Zoom al extent de ${escapeHtml(grp.label || groupId)}">
-                            <div class="d-flex align-items-center gap-2">
+                             title="Click para plegar/desplegar, click derecho para Zoom al extent">
+                            <div class="d-flex align-items-center gap-2 group-header-left">
                                 <input class="form-check-input mt-0 group-master-checkbox" type="checkbox" id="grp-cb-${groupId}"
                                        title="Alternar todo ${escapeHtml(grp.label || groupId)}"
                                        ${(isOrtoChecked && isCurvaChecked) ? 'checked' : ''}>
-                                <span class="fw-bold" style="font-size:0.88rem; letter-spacing:0.3px;">📁 ${escapeHtml(grp.label || groupId)}</span>
+                                <span class="fw-bold group-title-toggle" data-group="${groupId}" style="font-size:0.88rem; letter-spacing:0.3px; user-select:none;">📁 ${escapeHtml(grp.label || groupId)}</span>
                             </div>
                             <div class="d-flex align-items-center gap-1">
                                 <button class="btn btn-sm btn-outline-light py-0 px-2 btn-group-zoom shadow-none" data-group="${groupId}" title="Zoom al extent (${escapeHtml(groupId)})" style="font-size:0.75rem; border-color: rgba(255,255,255,0.4); background:rgba(255,255,255,0.15);">
                                     🔍 Extent
                                 </button>
+                                <button class="btn btn-sm btn-outline-light py-0 px-2 btn-group-toggle-collapse shadow-none" data-group="${groupId}" title="${isExpanded ? 'Comprimir grupo (-)' : 'Desplegar grupo (+)'}" style="font-size:0.95rem; font-weight:bold; line-height:1.1; min-width:26px; border-color: rgba(255,255,255,0.4); background:rgba(255,255,255,0.25);">
+                                    ${isExpanded ? '-' : '+'}
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Sub-capas agrupadas -->
-                        <div class="p-2" style="background: rgba(245, 247, 250, 0.95);">
+                        <!-- Sub-capas agrupadas (Cuerpo Colapsable) -->
+                        <div id="grp-body-${groupId}" class="group-collapse-body p-2" style="background: rgba(245, 247, 250, 0.95); display: ${isExpanded ? 'block' : 'none'};">
                             <!-- 1. Ortofoto -->
                             <div class="d-flex align-items-center justify-content-between p-1 rounded mb-1 border"
                                  style="background:#fff;" data-layer-type="base" data-layer-name="${ortoId}">
@@ -714,6 +740,36 @@
                     `;
                 }).join('')}
             `;
+
+            // Botones de colapso/despliegue individual (+ y -)
+            ovPanel.querySelectorAll('.btn-group-toggle-collapse').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const grpId = btn.dataset.group;
+                    toggleGroupAccordion(grpId);
+                });
+            });
+
+            // Clic en el titulo del grupo para alternar acordeon
+            ovPanel.querySelectorAll('.group-title-toggle').forEach(el => {
+                el.addEventListener('click', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const grpId = el.dataset.group;
+                    toggleGroupAccordion(grpId);
+                });
+            });
+
+            // Botones globales: + Todo y - Todo
+            document.getElementById('btn-expand-all-groups')?.addEventListener('click', () => {
+                groups.forEach(([groupId]) => { groupCollapseState[groupId] = true; });
+                renderLayersPanel();
+            });
+            document.getElementById('btn-collapse-all-groups')?.addEventListener('click', () => {
+                groups.forEach(([groupId]) => { groupCollapseState[groupId] = false; });
+                renderLayersPanel();
+            });
 
             // Boton de zoom rapido por grupo
             ovPanel.querySelectorAll('.btn-group-zoom').forEach(btn => {
