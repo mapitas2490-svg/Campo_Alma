@@ -178,8 +178,12 @@
     }
 
     function getContourColor(elev) {
-        const minZ = 1915.0;
-        const maxZ = 1950.0;
+        let minZ = 1915.0;
+        let maxZ = 1950.0;
+        if (elev > 2050) {
+            minZ = 2103.0;
+            maxZ = 2140.0;
+        }
         const ratio = Math.max(0, Math.min(1, (elev - minZ) / (maxZ - minZ)));
         if (ratio < 0.25) {
             return interpolateColor('#0077b6', '#06d6a0', ratio / 0.25);
@@ -684,8 +688,8 @@
                             <!-- Altimetría -->
                             <div class="px-2 py-1 rounded mt-1 border shadow-xs" style="background:#ffffff; font-size:10px;">
                                 <div class="d-flex justify-content-between fw-bold mb-1" style="color:#2f3b47;">
-                                    <span>Altimetría: 1,915 m</span>
-                                    <span>1,950 m</span>
+                                    <span>Altimetría: ${(CFG.OVERLAY_LAYERS[curvaId]?.minAlt || 1915).toLocaleString()} m</span>
+                                    <span>${(CFG.OVERLAY_LAYERS[curvaId]?.maxAlt || 1950).toLocaleString()} m</span>
                                 </div>
                                 <div style="height:8px; border-radius:4px; background:linear-gradient(to right, #0077b6 0%, #06d6a0 25%, #ffd166 50%, #f77f00 75%, #d62828 100%);"></div>
                                 <div class="d-flex justify-content-between text-muted mt-1" style="font-size:9px;">

@@ -1,0 +1,43 @@
+{
+  "name": "LUGAR_01_orto",
+  "source": "F:\\ALMA\\INEGI_CAMPO\\CAMPO_ORGANIZADO\\agisoft\\LUGAR_01_NORTE_24AUG_TARDE.files\\orto\\LUGAR_01_NORTE_24AUG_TARDE.jp2",
+  "attribution": "Ortofoto UAV LUGAR_01 2026",
+  "tile_size": 256,
+  "min_zoom": 15,
+  "max_zoom": 21,
+  "scheme": "xyz",
+  "format": "png",
+  "bbox_4326": [
+    -97.67259324631611,
+    18.565040158856274,
+    -97.6704854982277,
+    18.568589616498144
+  ],
+  "bbox_3857": [
+    -10872863.34463844,
+    2103792.7650075383,
+    -10872628.711194519,
+    2104209.582953141
+  ],
+  "center_4326": [
+    -97.67153937227191,
+    18.56681488767721
+  ],
+  "crs": "EPSG:3857",
+  "tile_pattern": "{z}/{x}/{y}.png",
+  "stats": {
+    "tiles": 469,
+    "bytes": 53890326,
+    "per_zoom": {
+      "15": 1,
+      "16": 2,
+      "17": 6,
+      "18": 12,
+      "19": 30,
+      "20": 96,
+      "21": 322
+    },
+    "zmax_natural": 6
+  },
+  "generated_at": "2026-09-20T11:41:44-0600"
+}
