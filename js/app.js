@@ -104,10 +104,10 @@
     //   - Detalle (5cm/px, zIndex=20, activo en zoom >= 17.5)
     // =====================================================================
     const baseLayers = {};
-    const userEnabledBases = {
-        'osm': true,
-        'ortofoto_alma_campo': true
-    };
+    const userEnabledBases = {};
+    for (const [bName, bInfo] of Object.entries(CFG.BASE_LAYERS || {})) {
+        userEnabledBases[bName] = (bInfo.visible !== false);
+    }
 
     // Crear capas base con zIndex apropiado
     const baseEntries = Object.entries(CFG.BASE_LAYERS);
@@ -248,7 +248,7 @@
                         console.warn(`[visor] ${name}: 0 features leidas`);
                         return;
                     }
-                    const isContour = (name === 'curvas_nivel' || info.type === 'contour');
+                    const isContour = (name === 'curvas_nivel' || name.endsWith('_curva') || info.type === 'contour');
                     const baseColor = info.color || '#0077b6';
                     let vectorStyle;
                     if (isContour) {
@@ -469,93 +469,279 @@
     // (clusterStyle eliminado: ya no se usa con heatmap)
 
     // =====================================================================
-    // SIDEBAR: capas base (checkbox), overlays (checkbox), bulk ON/OFF
+    // SIDEBAR: Grupos de Sitios (LUGAR_05, etc.) con orto y curvas agrupadas, y click derecho Zoom al extent
     // =====================================================================
-        function renderLayersPanel() {
-        const basePanel = document.getElementById('base-panel');
-        if (basePanel) {
-            basePanel.innerHTML = `
-                <div class="mb-1 d-flex align-items-center justify-content-between">
-                    <small class="text-muted fw-semibold">Capas base:</small>
-                </div>
-                <div class="form-check mb-1">
-                    <input class="form-check-input" type="checkbox" id="base-ortofoto_alma_campo" ${userEnabledBases['ortofoto_alma_campo'] ? 'checked' : ''}>
-                    <label class="form-check-label fw-bold text-success" for="base-ortofoto_alma_campo" style="font-size:0.85rem;cursor:pointer;">
-                        🚁 Ortofoto Campo (3.8 cm/px)
-                    </label>
-                </div>
-                <div class="form-check mb-1">
-                    <input class="form-check-input" type="checkbox" id="base-osm" ${userEnabledBases['osm'] ? 'checked' : ''}>
-                    <label class="form-check-label" for="base-osm" style="font-size:0.85rem;cursor:pointer;">
-                        🗺️ OpenStreetMap
-                    </label>
-                </div>
-            `;
-            basePanel.querySelectorAll('input[id^=base-]').forEach(c => {
-                c.addEventListener('change', e => toggleBase(e.target.id.replace('base-',''), e.target.checked));
-            });
+    
+    function zoomToTarget(name, type) {
+        let extent4326 = null;
+        let center4326 = null;
+        let altitude = 1930.0;
+        let siteId = null;
+
+        if (type === 'group' || (CFG.GROUPS && CFG.GROUPS[name])) {
+            siteId = name;
+            const grp = CFG.GROUPS[name];
+            extent4326 = grp.extent;
+            center4326 = grp.center;
+            altitude = grp.altitude || 1930.0;
+        } else if (type === 'base' || (CFG.BASE_LAYERS && CFG.BASE_LAYERS[name])) {
+            const b = CFG.BASE_LAYERS[name];
+            siteId = b.groupId || 'LUGAR_05';
+            if (CFG.GROUPS && CFG.GROUPS[siteId]) {
+                extent4326 = CFG.GROUPS[siteId].extent;
+                center4326 = CFG.GROUPS[siteId].center;
+                altitude = CFG.GROUPS[siteId].altitude || 1930.0;
+            } else {
+                extent4326 = CFG.EXTENTS?.[name] || CFG.EXTENTS?.['LUGAR_05'] || CFG.EXTENTS?.['campo'];
+            }
+        } else if (type === 'overlay' || (CFG.OVERLAY_LAYERS && CFG.OVERLAY_LAYERS[name])) {
+            const o = CFG.OVERLAY_LAYERS[name];
+            siteId = o.groupId || 'LUGAR_05';
+            const ovObj = overlays[name];
+            if (ovObj && ovObj.layer) {
+                const src = ovObj.layer.getSource();
+                const ext3857 = src?.getExtent && src.getExtent();
+                if (ext3857 && isFinite(ext3857[0])) {
+                    extent4326 = ol.proj.transformExtent(ext3857, 'EPSG:3857', 'EPSG:4326');
+                }
+            }
+            if (!extent4326 && CFG.GROUPS && CFG.GROUPS[siteId]) {
+                extent4326 = CFG.GROUPS[siteId].extent;
+                center4326 = CFG.GROUPS[siteId].center;
+                altitude = CFG.GROUPS[siteId].altitude || 1930.0;
+            }
         }
+
+        if (!extent4326) {
+            extent4326 = CFG.EXTENTS?.[name] || CFG.EXTENTS?.['LUGAR_05'] || CFG.EXTENTS?.['campo'] || [-97.846943, 17.896546, -97.844386, 17.899180];
+        }
+        if (!center4326) {
+            center4326 = [(extent4326[0] + extent4326[2]) / 2, (extent4326[1] + extent4326[3]) / 2];
+        }
+
+        const is3D = document.getElementById('btn-mode-3d')?.classList.contains('active') ||
+                     (document.getElementById('cesiumContainer') && document.getElementById('cesiumContainer').style.display !== 'none');
+
+        if (is3D) {
+            if (window.__cesiumApp && typeof window.__cesiumApp.zoomToSite === 'function' && siteId) {
+                window.__cesiumApp.zoomToSite(siteId, 1.2);
+            } else if (window.__cesiumApp && typeof window.__cesiumApp.zoomToLocation === 'function') {
+                window.__cesiumApp.zoomToLocation(center4326[0], center4326[1], altitude, 1.2);
+            } else if (window.__cesiumApp && typeof window.__cesiumApp.focusCoordinates === 'function') {
+                window.__cesiumApp.focusCoordinates(1.2);
+            }
+            return;
+        }
+
+        // Modo 2D con OpenLayers
+        const ext3857 = ol.proj.transformExtent(extent4326, 'EPSG:4326', 'EPSG:3857');
+        const sidebarEl = document.querySelector('.visor-sidebar');
+        const padLeft = (sidebarEl && sidebarEl.offsetWidth > 0) ? sidebarEl.offsetWidth + 30 : 40;
+        map.getView().fit(ext3857, {
+            padding: [40, 50, 40, padLeft],
+            duration: 800,
+            maxZoom: 19
+        });
+    }
+
+    function toggleGroupVisibility(groupId, forceState = null) {
+        const grp = CFG.GROUPS?.[groupId];
+        if (!grp) return;
+
+        let nextState;
+        if (forceState !== null) {
+            nextState = forceState;
+        } else {
+            const anyActive = grp.layers.some(l => {
+                if (l.type === 'base') return !!userEnabledBases[l.id];
+                if (l.type === 'overlay') return overlays[l.id]?.layer?.getVisible();
+                return false;
+            });
+            nextState = !anyActive;
+        }
+
+        grp.layers.forEach(l => {
+            if (l.type === 'base') {
+                toggleBase(l.id, nextState);
+                const cb = document.getElementById(`base-${l.id}`);
+                if (cb) cb.checked = nextState;
+            } else if (l.type === 'overlay') {
+                const o = overlays[l.id];
+                if (o && o.layer) {
+                    o.layer.setVisible(nextState);
+                }
+                const cb = document.getElementById(`ov-${l.id}`);
+                if (cb) cb.checked = nextState;
+                if (typeof window.__setCesiumLayerVisible === 'function') {
+                    window.__setCesiumLayerVisible(l.id, nextState);
+                }
+            }
+        });
+
+        const masterCb = document.getElementById(`grp-cb-${groupId}`);
+        if (masterCb) {
+            masterCb.checked = nextState;
+            masterCb.indeterminate = false;
+        }
+    }
+
+    function updateGroupCheckboxState(groupId) {
+        if (!groupId) return;
+        const grp = CFG.GROUPS?.[groupId];
+        if (!grp) return;
+
+        const masterCb = document.getElementById(`grp-cb-${groupId}`);
+        if (!masterCb) return;
+
+        const total = grp.layers.length;
+        let countActive = 0;
+        grp.layers.forEach(l => {
+            if (l.type === 'base' && userEnabledBases[l.id]) countActive++;
+            if (l.type === 'overlay' && overlays[l.id]?.layer?.getVisible()) countActive++;
+        });
+
+        if (countActive === 0) {
+            masterCb.checked = false;
+            masterCb.indeterminate = false;
+        } else if (countActive === total) {
+            masterCb.checked = true;
+            masterCb.indeterminate = false;
+        } else {
+            masterCb.checked = false;
+            masterCb.indeterminate = true;
+        }
+    }
+
+    function renderLayersPanel() {
         const ovPanel = document.getElementById('overlay-panel');
         if (ovPanel) {
+            const groups = Object.entries(CFG.GROUPS || {});
             ovPanel.innerHTML = `
-                <div class="mb-1">
-                    <small class="text-muted fw-semibold">Capas superpuestas:</small>
+                <div class="mb-2 d-flex align-items-center justify-content-between">
+                    <small class="text-muted fw-semibold">Sitios y Capas Agrupadas:</small>
                 </div>
-                
-                
-                    <!-- Control para prender/apagar Vuelo de inspección -->
-                    
+                ${groups.map(([groupId, grp]) => {
+                    const ortoLayer = grp.layers.find(l => l.kind === 'orto' || l.id.endsWith('_orto'));
+                    const curvaLayer = grp.layers.find(l => l.kind === 'curva' || l.id.endsWith('_curva'));
+                    const ortoId = ortoLayer ? ortoLayer.id : `${groupId}_orto`;
+                    const curvaId = curvaLayer ? curvaLayer.id : `${groupId}_curva`;
+                    const isOrtoChecked = !!userEnabledBases[ortoId];
+                    const isCurvaChecked = overlays[curvaId] ? overlays[curvaId].layer.getVisible() : (CFG.OVERLAY_LAYERS[curvaId]?.visible !== false);
 
-${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
-                    <div class="d-flex align-items-center justify-content-between my-1 p-1 rounded border-bottom" style="background:rgba(255,255,255,0.7)">
-                        <div class="form-check mb-0 me-2">
-                            <input class="form-check-input" type="checkbox" id="ov-${name}" ${(overlays[name] ? overlays[name].layer.getVisible() : (info.visible !== false)) ? 'checked' : ''}>
-                            <label class="form-check-label fw-semibold" for="ov-${name}" style="font-size:0.85rem;cursor:pointer" data-layer-type="overlay" data-layer-name="${name}" title="Click derecho para opciones">${escapeHtml(info.label)}</label>
+                    return `
+                    <div class="card mb-2 shadow-sm border-0 group-card" style="border-radius: 8px; overflow: hidden; border: 1px solid #d0d7dd !important;">
+                        <!-- Cabecera del Grupo -->
+                        <div class="card-header py-2 px-2 d-flex align-items-center justify-content-between text-white"
+                             style="background: linear-gradient(135deg, #435363 0%, #56697a 100%); cursor: context-menu;"
+                             data-layer-type="group" data-layer-name="${groupId}"
+                             title="Click derecho para Zoom al extent de ${escapeHtml(grp.label || groupId)}">
+                            <div class="d-flex align-items-center gap-2">
+                                <input class="form-check-input mt-0 group-master-checkbox" type="checkbox" id="grp-cb-${groupId}"
+                                       title="Alternar todo ${escapeHtml(grp.label || groupId)}"
+                                       ${(isOrtoChecked && isCurvaChecked) ? 'checked' : ''}>
+                                <span class="fw-bold" style="font-size:0.88rem; letter-spacing:0.3px;">📁 ${escapeHtml(grp.label || groupId)}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <button class="btn btn-sm btn-outline-light py-0 px-2 btn-group-zoom shadow-none" data-group="${groupId}" title="Zoom al extent (${escapeHtml(groupId)})" style="font-size:0.75rem; border-color: rgba(255,255,255,0.4); background:rgba(255,255,255,0.15);">
+                                    🔍 Extent
+                                </button>
+                            </div>
                         </div>
-                        <button class="btn btn-sm btn-outline-primary py-0 px-2 btn-open-table" data-layer="${name}" title="Ver tabla de atributos de ${escapeHtml(info.label)}">
-                            📊 Tabla
-                        </button>
+
+                        <!-- Sub-capas agrupadas -->
+                        <div class="p-2" style="background: rgba(245, 247, 250, 0.95);">
+                            <!-- 1. Ortofoto -->
+                            <div class="d-flex align-items-center justify-content-between p-1 rounded mb-1 border"
+                                 style="background:#fff;" data-layer-type="base" data-layer-name="${ortoId}">
+                                <div class="form-check mb-0 me-1 text-truncate">
+                                    <input class="form-check-input sub-layer-cb" type="checkbox" id="base-${ortoId}"
+                                           data-group="${groupId}" data-layer-id="${ortoId}" ${isOrtoChecked ? 'checked' : ''}>
+                                    <label class="form-check-label fw-bold text-dark text-truncate" for="base-${ortoId}"
+                                           style="font-size:0.82rem; cursor:pointer;" title="Click derecho para Zoom al extent">
+                                        🗺️ ${escapeHtml(ortoId)}
+                                    </label>
+                                </div>
+                                <span class="badge text-bg-light border text-muted" style="font-size:0.68rem;">3.8 cm/px</span>
+                            </div>
+
+                            <!-- 2. Curvas de nivel -->
+                            <div class="d-flex align-items-center justify-content-between p-1 rounded mb-1 border"
+                                 style="background:#fff;" data-layer-type="overlay" data-layer-name="${curvaId}">
+                                <div class="form-check mb-0 me-1 text-truncate">
+                                    <input class="form-check-input sub-layer-cb" type="checkbox" id="ov-${curvaId}"
+                                           data-group="${groupId}" data-layer-id="${curvaId}" ${isCurvaChecked ? 'checked' : ''}>
+                                    <label class="form-check-label fw-semibold text-dark text-truncate" for="ov-${curvaId}"
+                                           style="font-size:0.82rem; cursor:pointer;" title="Click derecho para Zoom al extent o tabla">
+                                        📈 ${escapeHtml(curvaId)}
+                                    </label>
+                                </div>
+                                <button class="btn btn-sm btn-outline-primary py-0 px-2 btn-open-table" data-layer="${curvaId}"
+                                        title="Ver tabla de atributos de ${escapeHtml(curvaId)}" style="font-size:0.75rem;">
+                                    📋 Tabla
+                                </button>
+                            </div>
+
+                            <!-- Altimetría -->
+                            <div class="px-2 py-1 rounded mt-1 border shadow-xs" style="background:#ffffff; font-size:10px;">
+                                <div class="d-flex justify-content-between fw-bold mb-1" style="color:#2f3b47;">
+                                    <span>Altimetría: 1,915 m</span>
+                                    <span>1,950 m</span>
+                                </div>
+                                <div style="height:8px; border-radius:4px; background:linear-gradient(to right, #0077b6 0%, #06d6a0 25%, #ffd166 50%, #f77f00 75%, #d62828 100%);"></div>
+                                <div class="d-flex justify-content-between text-muted mt-1" style="font-size:9px;">
+                                    <span>Ordinarias: 1.0 m</span>
+                                    <span>Maestras: 5.0 m</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    ` + (name === 'curvas_nivel' ? `
-                    <div class="px-2 py-1 rounded mt-1 mb-2 border shadow-sm" style="background:rgba(255,255,255,0.9); font-size:10px;">
-                        <div class="d-flex justify-content-between fw-bold mb-1" style="color:#1b4d3e;">
-                            <span>Altimetría: 1,915 m</span>
-                            <span>1,950 m</span>
-                        </div>
-                        <div style="height:8px; border-radius:4px; background:linear-gradient(to right, #0077b6 0%, #06d6a0 25%, #ffd166 50%, #f77f00 75%, #d62828 100%);"></div>
-                        <div class="d-flex justify-content-between text-muted mt-1" style="font-size:9px;">
-                            <span>Ordinarias: 1.0 m</span>
-                            <span>Maestras: 5.0 m</span>
-                        </div>
-                    </div>` : '') + (name === 'arboles' ? `<div class="mt-1 mb-2 p-2 rounded border p-2" style="font-size:10px; line-height: 1.2;">
-                        <div style="font-weight: bold; margin-bottom: 4px; color: #333;">Concentración de árboles:</div>
-                        <div class="d-flex align-items-center justify-content-between text-center">
-                            <div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2e7d32;border:1px solid #fff;"></span><br><span style="font-size:9px;color:#555;">1-20</span></div>
-                            <div><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:rgba(255, 193, 7, 0.9);border:1px solid #fff;"></span><br><span style="font-size:9px;color:#555;">21-100</span></div>
-                            <div><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:rgba(255, 152, 0, 0.9);border:1px solid #fff;"></span><br><span style="font-size:9px;color:#555;">101-500</span></div>
-                            <div><span style="display:inline-block;width:15px;height:15px;border-radius:50%;background:rgba(244, 67, 54, 0.9);border:1px solid #fff;"></span><br><span style="font-size:9px;color:#555;">501-1.5k</span></div>
-                            <div><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:rgba(183, 28, 28, 0.96);border:1px solid #fff;"></span><br><span style="font-size:9px;color:#555;">&gt;1.5k</span></div>
-                        </div>
-                    </div>` : '')).join('')}
+                    `;
+                }).join('')}
             `;
-                        document.getElementById('toggle-flight-layer')?.addEventListener('change', (e) => {
-                if (window.__flightVectorLayer) {
-                    window.__flightVectorLayer.setVisible(e.target.checked);
-                }
-            });
-            ovPanel.querySelectorAll('input[id^=ov-]').forEach(c => {
-                c.addEventListener('change', e => {
-                    const name = c.id.replace('ov-', '');
-                    const o = overlays[name];
-                    if (o && o.layer) o.layer.setVisible(e.target.checked);
-                    if (name === 'fotos' && window.__fotosLayer) {
-                        window.__fotosLayer.setVisible(e.target.checked);
-                    }
-                    if (typeof window.__setCesiumLayerVisible === 'function') {
-                        window.__setCesiumLayerVisible(name, e.target.checked);
-                    }
+
+            // Boton de zoom rapido por grupo
+            ovPanel.querySelectorAll('.btn-group-zoom').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const grpId = btn.dataset.group;
+                    zoomToTarget(grpId, 'group');
                 });
             });
+
+            // Checkbox maestro de grupo
+            ovPanel.querySelectorAll('.group-master-checkbox').forEach(cb => {
+                cb.addEventListener('change', e => {
+                    const grpId = cb.id.replace('grp-cb-', '');
+                    toggleGroupVisibility(grpId, cb.checked);
+                });
+            });
+
+            // Sub-checkboxes de ortofoto
+            ovPanel.querySelectorAll('input[id^="base-"]').forEach(cb => {
+                cb.addEventListener('change', e => {
+                    const name = cb.id.replace('base-', '');
+                    toggleBase(name, cb.checked);
+                    const grpId = cb.dataset.group;
+                    updateGroupCheckboxState(grpId);
+                });
+            });
+
+            // Sub-checkboxes de curvas
+            ovPanel.querySelectorAll('input[id^="ov-"]').forEach(cb => {
+                cb.addEventListener('change', e => {
+                    const name = cb.id.replace('ov-', '');
+                    const o = overlays[name];
+                    if (o && o.layer) o.layer.setVisible(cb.checked);
+                    if (typeof window.__setCesiumLayerVisible === 'function') {
+                        window.__setCesiumLayerVisible(name, cb.checked);
+                    }
+                    const grpId = cb.dataset.group;
+                    updateGroupCheckboxState(grpId);
+                });
+            });
+
+            // Boton tabla de atributos
             ovPanel.querySelectorAll('.btn-open-table').forEach(btn => {
                 btn.addEventListener('click', e => {
                     e.preventDefault();
@@ -564,41 +750,54 @@ ${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
                     openBottomPanel(layerName);
                 });
             });
-            document.getElementById('ovs-all-on')?.addEventListener('click', () => {
-                for (const [n, o] of Object.entries(overlays)) {
-                    o.layer.setVisible(true);
-                }
-                            document.getElementById('toggle-flight-layer')?.addEventListener('change', (e) => {
-                if (window.__flightVectorLayer) {
-                    window.__flightVectorLayer.setVisible(e.target.checked);
-                }
-            });
-            ovPanel.querySelectorAll('input[id^=ov-]').forEach(c => c.checked = true);
-            });
-            document.getElementById('ovs-all-off')?.addEventListener('click', () => {
-                for (const [n, o] of Object.entries(overlays)) {
-                    o.layer.setVisible(false);
-                }
-                            document.getElementById('toggle-flight-layer')?.addEventListener('change', (e) => {
-                if (window.__flightVectorLayer) {
-                    window.__flightVectorLayer.setVisible(e.target.checked);
-                }
-            });
-            ovPanel.querySelectorAll('input[id^=ov-]').forEach(c => c.checked = false);
+
+            groups.forEach(([groupId]) => updateGroupCheckboxState(groupId));
+        }
+
+        // Panel de Mapa Base
+        const basePanel = document.getElementById('base-panel');
+        if (basePanel) {
+            basePanel.innerHTML = `
+                <div class="form-check my-1">
+                    <input class="form-check-input" type="checkbox" id="base-osm" ${userEnabledBases['osm'] ? 'checked' : ''}>
+                    <label class="form-check-label fw-semibold" for="base-osm" style="font-size:0.85rem;cursor:pointer;" data-layer-type="base" data-layer-name="osm">
+                        🌐 OpenStreetMap (Mundial)
+                    </label>
+                </div>
+            `;
+            basePanel.querySelector('#base-osm')?.addEventListener('change', e => {
+                toggleBase('osm', e.target.checked);
             });
         }
 
+        // Re-asignar eventos de contextmenu (click derecho)
         document.querySelectorAll('[data-layer-name]').forEach(el => {
             el.addEventListener('contextmenu', e => {
                 e.preventDefault();
+                e.stopPropagation();
                 const type = el.dataset.layerType || 'overlay';
                 const name = el.dataset.layerName;
                 showLayerContextMenu(e, type, name);
             });
         });
     }
+
     // Renderizar paneles de capas inmediatamente al inicio
     renderLayersPanel();
+
+    // Sincronizar capas 2D desde checkboxes (usado al regresar de 3D)
+    window.__syncFromCheckboxes = function () {
+        document.querySelectorAll('#overlay-panel input[id^="base-"]').forEach(cb => {
+            const name = cb.id.replace('base-', '');
+            toggleBase(name, cb.checked);
+        });
+        document.querySelectorAll('#overlay-panel input[id^="ov-"]').forEach(cb => {
+            const name = cb.id.replace('ov-', '');
+            const o = overlays[name];
+            if (o && o.layer) o.layer.setVisible(cb.checked);
+        });
+        Object.keys(CFG.GROUPS || {}).forEach(updateGroupCheckboxState);
+    };
 
     let activeContextMenu = null;
     function hideContextMenu() {
@@ -614,20 +813,34 @@ ${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
         hideContextMenu();
         const menu = document.createElement('div');
         menu.className = 'layer-context-menu';
-        const isOverlay = type === 'overlay';
-        const labelName = isOverlay
-            ? (CFG.OVERLAY_LAYERS[name]?.label || name)
-            : (CFG.BASE_LAYERS[name]?.label || name);
+
+        let labelName = name;
+        const isGroup = (type === 'group');
+        const isOverlay = (type === 'overlay');
+        const isBase = (type === 'base');
+
+        if (isGroup) {
+            labelName = `📁 ${CFG.GROUPS?.[name]?.label || name}`;
+        } else if (isOverlay) {
+            labelName = `📈 ${CFG.OVERLAY_LAYERS?.[name]?.label || name}`;
+        } else if (isBase) {
+            labelName = `🗺️ ${CFG.BASE_LAYERS?.[name]?.label || name}`;
+        }
+
         menu.innerHTML = `
             <div class="layer-ctx-header">${escapeHtml(labelName)}</div>
-            ${isOverlay
-                ? `<button data-action="table">Ver tabla de atributos</button>`
-                : `<button data-action="info" disabled style="opacity:.5;cursor:not-allowed">Sin atributos (raster)</button>`
-            }
-            <button data-action="zoom">Zoom al extent</button>
-            <button data-action="toggle">${isOverlay ? 'Alternar visibilidad' : 'Alternar'}</button>
+            <button data-action="zoom" class="d-flex align-items-center gap-2">
+                <span>🔍</span> <span>Zoom al extent</span>
+            </button>
+            ${isOverlay ? `
+            <button data-action="table" class="d-flex align-items-center gap-2">
+                <span>📋</span> <span>Ver tabla de atributos</span>
+            </button>` : ''}
+            <button data-action="toggle" class="d-flex align-items-center gap-2">
+                <span>👁️</span> <span>Alternar visibilidad</span>
+            </button>
         `;
-        // Posicion cerca del click pero dentro del viewport
+
         let x = evt.clientX;
         let y = evt.clientY;
         menu.style.position = 'fixed';
@@ -646,19 +859,31 @@ ${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
                 e.stopPropagation();
                 const action = btn.dataset.action;
                 hideContextMenu();
-                if (action === 'table') openBottomPanel(name);
-                else if (action === 'zoom') zoomToLayerExtent(name, type);
-                else if (action === 'toggle') {
-                    if (type === 'base') {
+                if (action === 'zoom') {
+                    zoomToTarget(name, type);
+                } else if (action === 'table') {
+                    openBottomPanel(name);
+                } else if (action === 'toggle') {
+                    if (isGroup) {
+                        toggleGroupVisibility(name);
+                    } else if (isBase) {
                         const newState = !userEnabledBases[name];
                         toggleBase(name, newState);
                         const cb = document.getElementById(`base-${name}`);
                         if (cb) cb.checked = newState;
-                    } else {
+                        updateGroupCheckboxState(CFG.BASE_LAYERS[name]?.groupId);
+                    } else if (isOverlay) {
                         const o = overlays[name];
-                        if (o) o.layer.setVisible(!o.layer.getVisible());
-                        const cb = document.getElementById(`ov-${name}`);
-                        if (cb) cb.checked = o.layer.getVisible();
+                        if (o && o.layer) {
+                            const nextVis = !o.layer.getVisible();
+                            o.layer.setVisible(nextVis);
+                            const cb = document.getElementById(`ov-${name}`);
+                            if (cb) cb.checked = nextVis;
+                            if (typeof window.__setCesiumLayerVisible === 'function') {
+                                window.__setCesiumLayerVisible(name, nextVis);
+                            }
+                        }
+                        updateGroupCheckboxState(CFG.OVERLAY_LAYERS[name]?.groupId);
                     }
                 }
             });
@@ -670,28 +895,9 @@ ${Object.entries(CFG.OVERLAY_LAYERS).map(([name, info]) => `
     }
 
     function zoomToLayerExtent(name, type) {
-        let src;
-        if (type === 'overlay') {
-            const o = overlays[name];
-            if (!o) return;
-            src = o.layer.getSource();
-        } else {
-            const l = baseLayers[name];
-            if (!l) return;
-            src = l.getSource();
-        }
-        // Tile sources (XYZ/OSM) no dan extent preciso, usamos el extent global
-        if (src instanceof ol.source.XYZ || src instanceof ol.source.OSM) {
-            fitWholeChapultepec(600);
-            return;
-        }
-        const ext = src.getExtent && src.getExtent();
-        if (ext && isFinite(ext[0])) {
-            map.getView().fit(ext, { padding: [40, 40, 40, 40], maxZoom: 19, duration: 800 });
-        }
+        zoomToTarget(name, type);
     }
 
-    // =====================================================================
     // PANEL INFERIOR: Tabla persistente de atributos
     // =====================================================================
     let bottomPanel = null;

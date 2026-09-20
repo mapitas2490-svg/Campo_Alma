@@ -27,23 +27,36 @@
         }
     }
 
-    function focusTargetCoordinates(duration = 1.0) {
+    function focusTargetCoordinates(duration = 1.0, lon = TARGET_LON, lat = TARGET_LAT, alt = TARGET_ALT) {
         if (!cesiumViewer) return;
         
         try {
-            const target = Cesium.Cartesian3.fromDegrees(TARGET_LON, TARGET_LAT, TARGET_ALT);
+            const target = Cesium.Cartesian3.fromDegrees(lon, lat, alt);
             const heading = Cesium.Math.toRadians(15.0); // Orientacion hacia el Norte-Nororiente
             const pitch = Cesium.Math.toRadians(-45.0);   // Inclinacion a 45 grados para perspectiva 3D
             const range = 500.0;                          // Distancia en metros
 
-            // Posiciona la camara apuntando exactamente al punto especificado (19.703806, -98.805434)
             cesiumViewer.camera.lookAt(target, new Cesium.HeadingPitchRange(heading, pitch, range));
             cesiumViewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY); // Desbloquea la camara para orbitar libremente
             
-            console.log(`[Cesium 3D] Camara fijada en (${TARGET_LAT}, ${TARGET_LON})`);
+            console.log(`[Cesium 3D] Camara fijada en (${lat}, ${lon}, alt: ${alt})`);
         } catch (e) {
             console.warn('[Cesium 3D] Error al posicionar camara:', e);
         }
+    }
+
+    function zoomToSite(siteId, duration = 1.0) {
+        if (!cesiumViewer) return;
+        const grp = (window.__CONFIG && window.__CONFIG.GROUPS && window.__CONFIG.GROUPS[siteId]) || null;
+        if (grp && grp.center) {
+            focusTargetCoordinates(duration, grp.center[0], grp.center[1], grp.altitude || TARGET_ALT);
+        } else {
+            focusTargetCoordinates(duration);
+        }
+    }
+
+    function zoomToLocation(lon, lat, alt = TARGET_ALT, duration = 1.0) {
+        focusTargetCoordinates(duration, lon, lat, alt);
     }
 
     async function initCesiumViewer() {
@@ -238,6 +251,7 @@
                 cnSource.show = false; // Siempre apagado en 3D por defecto
                 cesiumViewer.dataSources.add(cnSource);
                 cesiumLayers['curvas_nivel'] = cnSource;
+                cesiumLayers['LUGAR_05_curva'] = cnSource;
                 console.log(`[Cesium 3D] Curvas de nivel registradas con altimetria 1915-1950m (visible: ${shouldShow}).`);
             } catch (errCn) {
                 console.warn('[Cesium 3D] No se cargaron curvas en 3D:', errCn);
@@ -294,6 +308,14 @@
     // Funcion publica para prender/apagar capas en Cesium 3D
     window.__cesiumLayers = cesiumLayers;
     window.__setCesiumLayerVisible = function (layerName, visible) {
+        if (window.__CONFIG && window.__CONFIG.GROUPS && window.__CONFIG.GROUPS[layerName]) {
+            const grp = window.__CONFIG.GROUPS[layerName];
+            grp.layers?.forEach(l => {
+                const ds = cesiumLayers[l.id];
+                if (ds) ds.show = !!visible;
+            });
+            return;
+        }
         const ds = cesiumLayers[layerName];
         if (ds) {
             ds.show = !!visible;
@@ -381,7 +403,9 @@
             getViewer: () => cesiumViewer,
             getTileset: () => cesiumTileset,
             setMode: setViewMode,
-            focusCoordinates: focusTargetCoordinates
+            focusCoordinates: focusTargetCoordinates,
+            zoomToSite: zoomToSite,
+            zoomToLocation: zoomToLocation
         };
     }
 
