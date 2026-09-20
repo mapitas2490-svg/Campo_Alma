@@ -2132,5 +2132,71 @@
     "pais": "Local",
     "lat": null,
     "lon": null
+  },
+  {
+    "fecha": "2026-09-20 16:08:09",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 16:09:08",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 16:09:29",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 16:09:31",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 16:09:33",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 16:09:36",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
   }
 ]

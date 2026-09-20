@@ -653,10 +653,6 @@
             ovPanel.innerHTML = `
                 <div class="mb-2 d-flex align-items-center justify-content-between">
                     <small class="text-muted fw-semibold">Sitios y Capas Agrupadas:</small>
-                    <div class="d-flex gap-1">
-                        <button class="btn btn-xs btn-outline-secondary py-0 px-1 shadow-none" id="btn-expand-all-groups" title="Desplegar todos los grupos (+)" style="font-size:0.72rem; font-weight:bold; line-height:1.2;">+ Todo</button>
-                        <button class="btn btn-xs btn-outline-secondary py-0 px-1 shadow-none" id="btn-collapse-all-groups" title="Comprimir todos los grupos (-)" style="font-size:0.72rem; font-weight:bold; line-height:1.2;">- Todo</button>
-                    </div>
                 </div>
                 ${groups.map(([groupId, grp]) => {
                     const ortoLayer = grp.layers.find(l => l.kind === 'orto' || l.id.endsWith('_orto'));
@@ -761,15 +757,7 @@
                 });
             });
 
-            // Botones globales: + Todo y - Todo
-            document.getElementById('btn-expand-all-groups')?.addEventListener('click', () => {
-                groups.forEach(([groupId]) => { groupCollapseState[groupId] = true; });
-                renderLayersPanel();
-            });
-            document.getElementById('btn-collapse-all-groups')?.addEventListener('click', () => {
-                groups.forEach(([groupId]) => { groupCollapseState[groupId] = false; });
-                renderLayersPanel();
-            });
+
 
             // Boton de zoom rapido por grupo
             ovPanel.querySelectorAll('.btn-group-zoom').forEach(btn => {
