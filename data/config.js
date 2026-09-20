@@ -1,5 +1,5 @@
 // config.js - Configuracion del visor
-// Geoportal Alma de Campo
+// Geoportal Campo
 
 window.__CONFIG = {
     // Webhook de Google Sheets para registrar visitas en vivo (GitHub Pages y servidor)
@@ -11,7 +11,7 @@ window.__CONFIG = {
             "type": "osm"
         },
         "ortofoto_alma_campo": {
-            "attribution": "Ortofoto UAV INyDES / Alma de Campo 2026 (GSD 3.8 cm/px)",
+            "attribution": "Ortofoto UAV Campo 2026 (GSD 3.8 cm/px)",
             "label": "Ortofoto UAV Alta Resolución (3.8 cm/px)",
             "maxZoom": 21,
             "minZoom": 14,

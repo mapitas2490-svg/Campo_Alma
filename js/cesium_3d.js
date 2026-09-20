@@ -86,7 +86,7 @@
                 homeButton: true,
                 sceneModePicker: false,
                 navigationHelpButton: false,
-                infoBox: false,
+                infoBox: true,
                 selectionIndicator: false
             });
 
@@ -157,32 +157,89 @@
                 console.warn('[Cesium 3D] No se cargo formas2 en 3D:', errShp);
             }
 
-            // 2. Capa Curvas de Nivel (1.0m) - APAGADA POR DEFECTO
+            // 2. Capa Curvas de Nivel (1.0m) con Altimetría Completa en 3D
             try {
-                const cnSource = await Cesium.GeoJsonDataSource.load('./data/curvas_nivel.geojson?v=2', {
+                const cnSource = await Cesium.GeoJsonDataSource.load('./data/curvas_nivel.geojson?v=3', {
                     clampToGround: true
                 });
-                const entities = cnSource.entities.values;
+                const entities = cnSource.entities.values.slice(); // copia
+                const minZ = 1915.0;
+                const maxZ = 1950.0;
+
                 for (let i = 0; i < entities.length; i++) {
                     const entity = entities[i];
-                    const elev = entity.properties.elev ? entity.properties.elev.getValue() : 2300;
-                    const ratio = Math.max(0, Math.min(1, (elev - 2300.0) / 16.0));
+                    const elev = entity.properties.elev ? Number(entity.properties.elev.getValue()) : 1930;
+                    const isMaster = entity.properties.is_master ? Boolean(entity.properties.is_master.getValue()) : (Math.round(elev * 10) % 50 === 0);
+                    
+                    // Gradiente altimétrico idéntico al 2D (1915m a 1950m)
+                    const ratio = Math.max(0, Math.min(1, (elev - minZ) / (maxZ - minZ)));
                     let col;
                     if (ratio < 0.25) col = Cesium.Color.fromCssColorString('#0077b6');
                     else if (ratio < 0.50) col = Cesium.Color.fromCssColorString('#06d6a0');
                     else if (ratio < 0.75) col = Cesium.Color.fromCssColorString('#ffd166');
+                    else if (ratio < 0.75) col = Cesium.Color.fromCssColorString('#f77f00');
                     else col = Cesium.Color.fromCssColorString('#d62828');
                     
                     if (entity.polyline) {
                         entity.polyline.material = col;
-                        const isMaster = entity.properties.is_master && entity.properties.is_master.getValue();
-                        entity.polyline.width = isMaster ? 2.5 : 1.2;
+                        entity.polyline.width = isMaster ? 3.0 : 1.5;
+                        entity.polyline.clampToGround = true;
+                    }
+
+                    // Metadata altimétrica interactiva (click en curva)
+                    entity.name = `Curva de nivel ${elev} msnm`;
+                    entity.description = `
+                        <div style="font-family:sans-serif;padding:8px;line-height:1.4;">
+                            <div style="background:#435363;color:#fff;padding:6px 10px;border-radius:4px;margin-bottom:8px;font-weight:bold;">
+                                🏔️ Altimetría: ${elev} msnm
+                            </div>
+                            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+                                <tr><td style="padding:3px;font-weight:bold;color:#555;">Cota:</td><td>${elev} msnm</td></tr>
+                                <tr><td style="padding:3px;font-weight:bold;color:#555;">Clasificación:</td><td>${isMaster ? 'Curva Maestra (cada 5m)' : 'Curva Ordinaria (1m)'}</td></tr>
+                                <tr><td style="padding:3px;font-weight:bold;color:#555;">Rango zona:</td><td>1,915 m - 1,950 m</td></tr>
+                            </table>
+                        </div>
+                    `;
+
+                    // Etiquetas altimétricas flotantes en 3D para curvas maestras
+                    if (isMaster && entity.polyline) {
+                        try {
+                            const positions = entity.polyline.positions.getValue(Cesium.JulianDate.now());
+                            if (positions && positions.length > 3) {
+                                const midIdx = Math.floor(positions.length / 2);
+                                const labelEntity = cnSource.entities.add({
+                                    position: positions[midIdx],
+                                    label: {
+                                        text: `${elev}m`,
+                                        font: 'bold 12px sans-serif',
+                                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                                        fillColor: Cesium.Color.WHITE,
+                                        outlineColor: Cesium.Color.BLACK,
+                                        outlineWidth: 3,
+                                        showBackground: true,
+                                        backgroundColor: new Cesium.Color(0.26, 0.32, 0.38, 0.85),
+                                        backgroundPadding: new Cesium.Cartesian2(4, 2),
+                                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                                        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                                        scaleByDistance: new Cesium.NearFarScalar(50, 1.0, 1200, 0.5),
+                                        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 1200)
+                                    }
+                                });
+                            }
+                        } catch (posErr) {
+                            // Ignorar error de posicion individual
+                        }
                     }
                 }
-                cnSource.show = false; // Inicia apagada
+
+                // Sincronizar visibilidad con el estado del panel en 2D
+                const cnCheckbox = document.getElementById('ov-curvas_nivel');
+                const shouldShow = cnCheckbox ? cnCheckbox.checked : true;
+                cnSource.show = shouldShow;
                 cesiumViewer.dataSources.add(cnSource);
                 cesiumLayers['curvas_nivel'] = cnSource;
-                console.log('[Cesium 3D] Curvas de nivel registradas (apagadas por defecto).');
+                console.log(`[Cesium 3D] Curvas de nivel registradas con altimetria 1915-1950m (visible: ${shouldShow}).`);
             } catch (errCn) {
                 console.warn('[Cesium 3D] No se cargaron curvas en 3D:', errCn);
             }
@@ -264,24 +321,13 @@
             if (mapEl) mapEl.style.display = 'none';
             if (cesiumEl) cesiumEl.style.display = 'block';
 
-            // Guardar estado de las capas en 2D antes de apagar
-            const state2D = {};
+            // Sincronizar capas en 3D reflejando exactamente el estado marcado en el panel
             document.querySelectorAll('#overlay-panel input[id^=ov-]').forEach(cb => {
                 const name = cb.id.replace('ov-', '');
-                state2D[name] = cb.checked;
-                cb.checked = false; // En 3D inician apagadas para evitar saturacion
+                if (cesiumLayers[name]) {
+                    cesiumLayers[name].show = cb.checked;
+                }
             });
-            const flightCb = document.getElementById('toggle-flight-layer');
-            if (flightCb) {
-                state2D['vuelo'] = flightCb.checked;
-                flightCb.checked = false;
-            }
-            window.__saved2DLayerState = state2D;
-
-            // Asegurar que todas las capas 3D esten apagadas
-            for (const key in cesiumLayers) {
-                if (cesiumLayers[key]) cesiumLayers[key].show = false;
-            }
 
             if (!cesiumViewer) {
                 initCesiumViewer();

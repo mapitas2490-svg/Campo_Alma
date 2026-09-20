@@ -481,7 +481,7 @@
                 <div class="form-check mb-1">
                     <input class="form-check-input" type="checkbox" id="base-ortofoto_alma_campo" ${userEnabledBases['ortofoto_san_martin'] ? 'checked' : ''}>
                     <label class="form-check-label fw-bold text-success" for="base-ortofoto_alma_campo" style="font-size:0.85rem;cursor:pointer;">
-                        🚁 Ortofoto Alma de Campo (3.8 cm/px)
+                        🚁 Ortofoto Campo (3.8 cm/px)
                     </label>
                 </div>
                 <div class="form-check mb-1">
