@@ -317,7 +317,7 @@
                     if (ratio < 0.25) col = Cesium.Color.fromCssColorString('#0077b6');
                     else if (ratio < 0.50) col = Cesium.Color.fromCssColorString('#06d6a0');
                     else if (ratio < 0.75) col = Cesium.Color.fromCssColorString('#ffd166');
-                    else if (ratio < 0.75) col = Cesium.Color.fromCssColorString('#f77f00');
+                    else if (ratio < 0.90) col = Cesium.Color.fromCssColorString('#f77f00');
                     else col = Cesium.Color.fromCssColorString('#d62828');
 
                     if (entity.polyline) {
@@ -368,7 +368,7 @@
                     if (ratio < 0.25) col = Cesium.Color.fromCssColorString('#0077b6');
                     else if (ratio < 0.50) col = Cesium.Color.fromCssColorString('#06d6a0');
                     else if (ratio < 0.75) col = Cesium.Color.fromCssColorString('#ffd166');
-                    else if (ratio < 0.75) col = Cesium.Color.fromCssColorString('#f77f00');
+                    else if (ratio < 0.90) col = Cesium.Color.fromCssColorString('#f77f00');
                     else col = Cesium.Color.fromCssColorString('#d62828');
 
                     if (entity.polyline) {

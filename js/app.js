@@ -180,9 +180,18 @@
     function getContourColor(elev) {
         let minZ = 1915.0;
         let maxZ = 1950.0;
-        if (elev > 2050) {
+        if (elev < 1500) {
+            // LUGAR_03: 1,142m - 1,167m
+            minZ = 1142.0;
+            maxZ = 1167.0;
+        } else if (elev > 2050) {
+            // LUGAR_01: 2,103m - 2,140m
             minZ = 2103.0;
             maxZ = 2140.0;
+        } else {
+            // LUGAR_05: 1,915m - 1,950m
+            minZ = 1915.0;
+            maxZ = 1950.0;
         }
         const ratio = Math.max(0, Math.min(1, (elev - minZ) / (maxZ - minZ)));
         if (ratio < 0.25) {
@@ -649,7 +658,15 @@
     function renderLayersPanel() {
         const ovPanel = document.getElementById('overlay-panel');
         if (ovPanel) {
-            const groups = Object.entries(CFG.GROUPS || {});
+            const orderKeys = ['LUGAR_01', 'LUGAR_03', 'LUGAR_05'];
+            const groups = Object.entries(CFG.GROUPS || {}).sort((a, b) => {
+                const idxA = orderKeys.indexOf(a[0]);
+                const idxB = orderKeys.indexOf(b[0]);
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return a[0].localeCompare(b[0]);
+            });
             ovPanel.innerHTML = `
 
                 ${groups.map(([groupId, grp]) => {
