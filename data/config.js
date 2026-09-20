@@ -47,7 +47,7 @@ window.__CONFIG = {
             "maxZoom": 24,
             "minZoom": 14,
             "type": "xyz",
-            "url": "./ortofoto_lugar_01/tiles/{z}/{x}/{y}.png?v=1",
+            "url": "./ortofoto_lugar_01/tiles/{z}/{x}/{y}.png?v=3",
             "groupId": "LUGAR_01"
         },
         "LUGAR_05_orto": {
@@ -56,7 +56,7 @@ window.__CONFIG = {
             "maxZoom": 24,
             "minZoom": 14,
             "type": "xyz",
-            "url": "./ortofoto_alma_campo/tiles/{z}/{x}/{y}.png?v=2",
+            "url": "./ortofoto_alma_campo/tiles/{z}/{x}/{y}.png?v=3",
             "groupId": "LUGAR_05"
         }
     },

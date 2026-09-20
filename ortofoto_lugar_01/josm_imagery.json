@@ -6,8 +6,8 @@
     "2. En JOSM: Edit > Preferences > Imagery > + (Custom)",
     "3. Pegar uno de los url de abajo como 'Tile URL'",
     "4. Name: LUGAR_01_orto",
-    "5. Attribution: Ortofoto UAV LUGAR_01 2026",
-    "6. Max zoom: 21"
+    "5. Attribution: Ortofoto UAV LUGAR_01 2026 - Resolucion Nativa (2.9 cm/px)",
+    "6. Max zoom: 22"
   ],
   "tile_url_examples": {
     "local_server": "http://localhost:8000/tiles/{z}/{x}/{y}.png",
@@ -20,8 +20,8 @@
     "type": "tms",
     "url": "http://localhost:8000/tiles/{z}/{x}/{y}.png",
     "min_zoom": 15,
-    "max_zoom": 21,
-    "attribution": "Ortofoto UAV LUGAR_01 2026",
+    "max_zoom": 22,
+    "attribution": "Ortofoto UAV LUGAR_01 2026 - Resolucion Nativa (2.9 cm/px)",
     "bbox": {
       "min_lon": -97.67259324631611,
       "min_lat": 18.565040158856274,

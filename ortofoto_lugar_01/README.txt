@@ -1,11 +1,11 @@
 Visor de ortofoto: LUGAR_01_orto
-Generado: 2026-09-20T11:41:44-0600
+Generado: 2026-09-20T15:35:24-0600
 Origen:   F:\ALMA\INEGI_CAMPO\CAMPO_ORGANIZADO\agisoft\LUGAR_01_NORTE_24AUG_TARDE.files\orto\LUGAR_01_NORTE_24AUG_TARDE.jp2
 
 ESTRUCTURA
 ----------
 F:\geoportal_Alma_Campo\visor_web_export\ortofoto_lugar_01/
-  tiles/{z}/{x}/{y}.png     Piramide XYZ (15..21, 256px)
+  tiles/{z}/{x}/{y}.png     Piramide XYZ (15..22, 256px)
   manifest.json                  Metadatos del tilset
   josm_imagery.json              Snippet para registrar como Custom imagery en JOSM
   sample.html                    Visor minimo (Leaflet) para verificar
@@ -31,8 +31,8 @@ COMO USAR EN JOSM
 2) JOSM > Edit > Preferences > Imagery > + (Custom)
 3) Tile URL: http://localhost:8000/tiles/{z}/{x}/{y}.png
 4) Name:     LUGAR_01_orto
-5) Attribution: Ortofoto UAV LUGAR_01 2026
-6) Max zoom: 21
+5) Attribution: Ortofoto UAV LUGAR_01 2026 - Resolucion Nativa (2.9 cm/px)
+6) Max zoom: 22
 
 COMO INTEGRAR CON TU VISOR (visor_fa o visor_web_export)
 --------------------------------------------------------
@@ -40,13 +40,13 @@ En FastAPI (visor_fa/app.py) montar la carpeta /tiles como estatico:
     from fastapi.staticfiles import StaticFiles
     app.mount("/ortofoto", StaticFiles(directory=r"F:\geoportal_Alma_Campo\visor_web_export\ortofoto_lugar_01"))
 Y en el HTML del visor:
-    L.tileLayer('/ortofoto/tiles/{z}/{x}/{y}.png', { attribution: 'Ortofoto UAV LUGAR_01 2026' })
+    L.tileLayer('/ortofoto/tiles/{z}/{x}/{y}.png', { attribution: 'Ortofoto UAV LUGAR_01 2026 - Resolucion Nativa (2.9 cm/px)' })
 
 ESTADISTICAS
 ------------
 {
-  "tiles": 469,
-  "bytes": 53890326,
+  "tiles": 1639,
+  "bytes": 196469844,
   "per_zoom": {
     "15": 1,
     "16": 2,
@@ -54,14 +54,15 @@ ESTADISTICAS
     "18": 12,
     "19": 30,
     "20": 96,
-    "21": 322
+    "21": 322,
+    "22": 1170
   },
   "zmax_natural": 6
 }
 
 LICENCIA / ATRIBUCION
 ---------------------
-Atribucion obligatoria: Ortofoto UAV LUGAR_01 2026
+Atribucion obligatoria: Ortofoto UAV LUGAR_01 2026 - Resolucion Nativa (2.9 cm/px)
 Para publicar el tile server publicamente, la ortofoto debe tener una
 licencia compatible (CC-BY-SA, ODbL, etc.). Revisar la licencia del
 vuelo UAV antes de cualquier publicacion externa.

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Ortofoto Alma de Campo - Visor de prueba</title>
+  <title>LUGAR_05_orto - Visor de prueba</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     html, body, #map { height: 100%; margin: 0; }
@@ -14,13 +14,13 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
   var bounds = [[17.89654632818153, -97.84694251260551], [17.89918033759941, -97.8443854522819]];
-  var map = L.map('map', { maxBounds: bounds, maxZoom: 21 });
+  var map = L.map('map', { maxBounds: bounds, maxZoom: 22 });
   L.tileLayer('./tiles/{z}/{x}/{y}.png', {
     minZoom: 15,
-    maxZoom: 21,
-    maxNativeZoom: 21,
+    maxZoom: 22,
+    maxNativeZoom: 22,
     tms: false,
-    attribution: "Ortofoto UAV INyDES / Alma de Campo 2026"
+    attribution: "Ortofoto UAV LUGAR_05 2026 - Resolucion Nativa (3.7 cm/px)"
   }).addTo(map);
   map.fitBounds(bounds);
 </script>

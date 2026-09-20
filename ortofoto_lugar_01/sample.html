@@ -14,13 +14,13 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
   var bounds = [[18.565040158856274, -97.67259324631611], [18.568589616498144, -97.6704854982277]];
-  var map = L.map('map', { maxBounds: bounds, maxZoom: 21 });
+  var map = L.map('map', { maxBounds: bounds, maxZoom: 22 });
   L.tileLayer('./tiles/{z}/{x}/{y}.png', {
     minZoom: 15,
-    maxZoom: 21,
-    maxNativeZoom: 21,
+    maxZoom: 22,
+    maxNativeZoom: 22,
     tms: false,
-    attribution: "Ortofoto UAV LUGAR_01 2026"
+    attribution: "Ortofoto UAV LUGAR_01 2026 - Resolucion Nativa (2.9 cm/px)"
   }).addTo(map);
   map.fitBounds(bounds);
 </script>
