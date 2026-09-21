@@ -625,7 +625,7 @@
     }
 
     // Estado persistente del acordeón de grupos (+ y -)
-    const groupCollapseState = window.__groupCollapseState || { 'LUGAR_01': true, 'LUGAR_02': true, 'LUGAR_03': true, 'LUGAR_05': true };
+    const groupCollapseState = window.__groupCollapseState || { 'LUGAR_01': true, 'LUGAR_02': true, 'LUGAR_03': true, 'LUGAR_04': true, 'LUGAR_05': true };
     window.__groupCollapseState = groupCollapseState;
 
     function toggleGroupAccordion(groupId) {
@@ -645,7 +645,7 @@
     function renderLayersPanel() {
         const ovPanel = document.getElementById('overlay-panel');
         if (ovPanel) {
-            const orderKeys = ['LUGAR_01', 'LUGAR_02', 'LUGAR_03', 'LUGAR_05'];
+            const orderKeys = ['LUGAR_01', 'LUGAR_02', 'LUGAR_03', 'LUGAR_04', 'LUGAR_05'];
             const groups = Object.entries(CFG.GROUPS || {}).sort((a, b) => {
                 const idxA = orderKeys.indexOf(a[0]);
                 const idxB = orderKeys.indexOf(b[0]);
@@ -701,7 +701,7 @@
                                         🗺️ ${escapeHtml(ortoId)}
                                     </label>
                                 </div>
-                                <span class="badge text-bg-light border text-muted" style="font-size:0.68rem;">${(ortoId.includes('01') ? '2.9 cm/px (Nativa)' : (ortoId.includes('02') ? '1.7 cm/px (Nativa)' : (ortoId.includes('03') ? '2.8 cm/px (Nativa)' : '3.7 cm/px (Nativa)')))}</span>
+                                <span class="badge text-bg-light border text-muted" style="font-size:0.68rem;">${(ortoId.includes('01') ? '2.9 cm/px (Nativa)' : (ortoId.includes('02') ? '1.7 cm/px (Nativa)' : (ortoId.includes('04') ? '2.8 cm/px (Nativa)' : (ortoId.includes('03') ? '2.8 cm/px (Nativa)' : '3.7 cm/px (Nativa)'))))}</span>
                             </div>
 
                             <!-- 2. Curvas de nivel -->

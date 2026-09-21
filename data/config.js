@@ -15,6 +15,7 @@ window.__CONFIG = {
         "LUGAR_01_orto",
         "LUGAR_02_orto",
         "LUGAR_03_orto",
+        "LUGAR_04_orto",
         "LUGAR_05_orto"
     ],
     "EXTENTS": {
@@ -35,6 +36,12 @@ window.__CONFIG = {
             18.26035,
             -97.276951,
             18.265737
+        ],
+        "LUGAR_04": [
+            -97.527528,
+            18.317269,
+            -97.522982,
+            18.319546
         ],
         "LUGAR_05": [
             -97.846943,
@@ -82,6 +89,15 @@ window.__CONFIG = {
             "url": "./ortofoto_lugar_03/tiles/{z}/{x}/{y}.png?v=1",
             "groupId": "LUGAR_03"
         },
+        "LUGAR_04_orto": {
+            "attribution": "Ortofoto UAV LUGAR_04 - Resolución Nativa (2.8 cm/px)",
+            "label": "LUGAR_04_orto (2.8 cm/px Nativa)",
+            "maxZoom": 24,
+            "minZoom": 14,
+            "type": "xyz",
+            "url": "./ortofoto_lugar_04/tiles/{z}/{x}/{y}.png?v=1",
+            "groupId": "LUGAR_04"
+        },
         "LUGAR_05_orto": {
             "attribution": "Ortofoto UAV LUGAR_05 - Resolución Nativa (3.7 cm/px)",
             "label": "LUGAR_05_orto (3.7 cm/px Nativa)",
@@ -124,6 +140,17 @@ window.__CONFIG = {
             "groupId": "LUGAR_03",
             "minAlt": 1142,
             "maxAlt": 1167,
+            "step": 1.0
+        },
+        "LUGAR_04_curva": {
+            "type": "contour",
+            "color": "#0077b6",
+            "label": "LUGAR_04_curva",
+            "url": "./data/lugar_04_curvas.geojson?v=1",
+            "visible": true,
+            "groupId": "LUGAR_04",
+            "minAlt": 1585,
+            "maxAlt": 1611,
             "step": 1.0
         },
         "LUGAR_05_curva": {
@@ -226,6 +253,36 @@ window.__CONFIG = {
                     "type": "overlay",
                     "kind": "curva",
                     "label": "LUGAR_03_curva"
+                }
+            ]
+        },
+        "LUGAR_04": {
+            "id": "LUGAR_04",
+            "label": "LUGAR_04",
+            "extent": [
+                -97.527528,
+                18.317269,
+                -97.522982,
+                18.319546
+            ],
+            "center": [
+                -97.525255,
+                18.318408
+            ],
+            "altitude": 1598.0,
+            "cesiumAssetId": 5902734,
+            "layers": [
+                {
+                    "id": "LUGAR_04_orto",
+                    "type": "base",
+                    "kind": "orto",
+                    "label": "LUGAR_04_orto"
+                },
+                {
+                    "id": "LUGAR_04_curva",
+                    "type": "overlay",
+                    "kind": "curva",
+                    "label": "LUGAR_04_curva"
                 }
             ]
         },

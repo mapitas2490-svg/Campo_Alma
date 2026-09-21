@@ -165,6 +165,7 @@
                 'LUGAR_01': { cesiumAssetId: 5902582, center: [-97.671539, 18.566815], altitude: 2120.0 },
                 'LUGAR_02': { cesiumAssetId: 5902662, center: [-97.744049, 18.485597], altitude: 2110.0 },
                 'LUGAR_03': { cesiumAssetId: 5902658, center: [-97.278735, 18.263044], altitude: 1155.0 },
+                'LUGAR_04': { cesiumAssetId: 5902734, center: [-97.525255, 18.318408], altitude: 1598.0 },
                 'LUGAR_05': { cesiumAssetId: 5902520, center: [-97.845664, 17.897863], altitude: 1930.0 }
             });
 
@@ -450,6 +451,57 @@
                 console.log('[Cesium 3D] Curvas LUGAR_03 registradas (1142-1167m).');
             } catch (errCn03) {
                 console.warn('[Cesium 3D] No se cargaron curvas LUGAR_03 en 3D:', errCn03);
+            }
+
+            // 2d. Capa Curvas de Nivel LUGAR_04 (1585m - 1611m) en 3D
+            try {
+                const cn04Source = await Cesium.GeoJsonDataSource.load('./data/lugar_04_curvas.geojson?v=1', {
+                    clampToGround: true
+                });
+                const entities04 = cn04Source.entities.values.slice();
+                const minZ04 = 1585.0;
+                const maxZ04 = 1611.0;
+
+                for (let i = 0; i < entities04.length; i++) {
+                    const entity = entities04[i];
+                    const elev = entity.properties.elev ? Number(entity.properties.elev.getValue()) : 1598;
+                    const isMaster = entity.properties.is_master ? Boolean(entity.properties.is_master.getValue()) : (Math.round(elev * 10) % 50 === 0);
+
+                    const ratio = Math.max(0, Math.min(1, (elev - minZ04) / (maxZ04 - minZ04)));
+                    let col;
+                    if (ratio < 0.25) col = Cesium.Color.fromCssColorString('#0077b6');
+                    else if (ratio < 0.50) col = Cesium.Color.fromCssColorString('#06d6a0');
+                    else if (ratio < 0.75) col = Cesium.Color.fromCssColorString('#ffd166');
+                    else if (ratio < 0.90) col = Cesium.Color.fromCssColorString('#f77f00');
+                    else col = Cesium.Color.fromCssColorString('#d62828');
+
+                    if (entity.polyline) {
+                        entity.polyline.material = col;
+                        entity.polyline.width = isMaster ? 3.0 : 1.5;
+                        entity.polyline.clampToGround = true;
+                    }
+
+                    entity.name = `Curva de nivel ${elev} msnm`;
+                    entity.description = `
+                        <div style="font-family:sans-serif;padding:8px;line-height:1.4;">
+                            <div style="background:#435363;color:#fff;padding:6px 10px;border-radius:4px;margin-bottom:8px;font-weight:bold;">
+                                📈 Altimetría LUGAR_04: ${elev} msnm
+                            </div>
+                            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+                                <tr><td style="padding:3px;font-weight:bold;color:#555;">Cota:</td><td>${elev} msnm</td></tr>
+                                <tr><td style="padding:3px;font-weight:bold;color:#555;">Clasificación:</td><td>${isMaster ? 'Curva Maestra (cada 5m)' : 'Curva Ordinaria (1m)'}</td></tr>
+                                <tr><td style="padding:3px;font-weight:bold;color:#555;">Rango zona:</td><td>1,585 m - 1,611 m</td></tr>
+                            </table>
+                        </div>
+                    `;
+                }
+
+                cn04Source.show = false; // Siempre apagado en 3D por defecto
+                cesiumViewer.dataSources.add(cn04Source);
+                cesiumLayers['LUGAR_04_curva'] = cn04Source;
+                console.log('[Cesium 3D] Curvas LUGAR_04 registradas (1585-1611m).');
+            } catch (errCn04) {
+                console.warn('[Cesium 3D] No se cargaron curvas LUGAR_04 en 3D:', errCn04);
             }
 
             // 3. Capa Fotos y Vistas 360 - APAGADA POR DEFECTO
