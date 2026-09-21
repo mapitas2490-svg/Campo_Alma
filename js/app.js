@@ -8,7 +8,8 @@
     const CFG = window.__CONFIG;
 
     // =====================================================================
-    // REGISTRO DE VISITAS EN GOOGLE SHEETS (Funciona en GitHub Pages y Local)
+    // =====================================================================
+    // REGISTRO DE VISITAS EN GOOGLE SHEETS (Híbrido: GPS Exacto + Fallback IP)
     // =====================================================================
     (function registrarVisitaCloud() {
         const webhookUrl = CFG.GOOGLE_SHEETS_WEBHOOK_URL;
@@ -18,37 +19,69 @@
         if (sessionStorage.getItem('visita_registrada_cloud')) return;
         sessionStorage.setItem('visita_registrada_cloud', '1');
 
+        function enviar(payload) {
+            fetch(webhookUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(() => {});
+        }
+
+        // 1. Obtener datos de red e IP pública (inmediato)
         fetch('https://freeipapi.com/api/json')
             .then(r => r.json())
             .then(data => {
-                const payload = {
+                const basePayload = {
+                    proyecto: 'Campo_Alma',
                     ip: data.ipAddress || 'Desconocida',
                     ciudad: data.cityName || '',
                     estado: data.regionName || '',
                     pais: data.countryName || '',
                     lat: data.latitude || null,
                     lon: data.longitude || null,
-                    dispositivo: (navigator.userAgent || '').slice(0, 150)
+                    dispositivo: (navigator.userAgent || '').slice(0, 150),
+                    tipo: 'IP'
                 };
-                fetch(webhookUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                }).catch(() => {});
+
+                // 2. Si el navegador cuenta con GPS, pedir coordenadas exactas
+                if ('geolocation' in navigator) {
+                    navigator.geolocation.getCurrentPosition(
+                        function (pos) {
+                            // Permiso concedido: Coordenadas GPS satelitales exactas
+                            const acc = Math.round(pos.coords.accuracy);
+                            const gpsPayload = Object.assign({}, basePayload, {
+                                lat: Number(pos.coords.latitude.toFixed(6)),
+                                lon: Number(pos.coords.longitude.toFixed(6)),
+                                ciudad: (basePayload.ciudad ? basePayload.ciudad + ' ' : '') + '[GPS ±' + acc + 'm]',
+                                tipo: 'GPS',
+                                precision: acc
+                            });
+                            enviar(gpsPayload);
+                        },
+                        function () {
+                            // Denegado o error: Enviar ubicación aproximada por IP
+                            enviar(basePayload);
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 8000,
+                            maximumAge: 0
+                        }
+                    );
+                } else {
+                    enviar(basePayload);
+                }
             })
             .catch(() => {
-                const payload = {
+                const fallbackPayload = {
+                    proyecto: 'Campo_Alma',
                     ip: 'Desconocida',
                     ciudad: 'Desconocida',
-                    dispositivo: (navigator.userAgent || '').slice(0, 150)
+                    dispositivo: (navigator.userAgent || '').slice(0, 150),
+                    tipo: 'IP'
                 };
-                fetch(webhookUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                }).catch(() => {});
+                enviar(fallbackPayload);
             });
     })();
 
