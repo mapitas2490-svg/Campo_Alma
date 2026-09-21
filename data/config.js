@@ -2,7 +2,7 @@
 // Geoportal Campo
 
 window.__CONFIG = {
-    "GOOGLE_SHEETS_WEBHOOK_URL": "https://script.google.com/macros/s/AKfycbzQ-n6r5bw9RMX5qP1vIpLaFQ4OE3qY-0bDege33YH4XoqamUwvtbQCp5d9xOjrH7_qTw/exec",
+    "GOOGLE_SHEETS_WEBHOOK_URL": "https://script.google.com/macros/s/AKfycbwIxY7by4i-dFyCXbCTsq_RZSw8sQBmJnZ2L75TR5A-sxmVm6jf6hGWlNpq1hPu_vW5/exec",
     "CENTER": [
         -97.671539,
         18.566815
