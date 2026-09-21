@@ -177,59 +177,44 @@
         return 'rgb(' + r + ',' + g + ',' + b + ')';
     }
 
-    function getContourColor(elev) {
-        let minZ = 1915.0;
-        let maxZ = 1950.0;
-        if (elev < 1500) {
-            // LUGAR_03: 1,142m - 1,167m
-            minZ = 1142.0;
-            maxZ = 1167.0;
-        } else if (elev > 2050) {
-            // LUGAR_01: 2,103m - 2,140m
-            minZ = 2103.0;
-            maxZ = 2140.0;
-        } else {
-            // LUGAR_05: 1,915m - 1,950m
-            minZ = 1915.0;
-            maxZ = 1950.0;
-        }
-        const ratio = Math.max(0, Math.min(1, (elev - minZ) / (maxZ - minZ)));
-        if (ratio < 0.25) {
-            return interpolateColor('#0077b6', '#06d6a0', ratio / 0.25);
-        } else if (ratio < 0.50) {
-            return interpolateColor('#06d6a0', '#ffd166', (ratio - 0.25) / 0.25);
-        } else if (ratio < 0.75) {
-            return interpolateColor('#ffd166', '#f77f00', (ratio - 0.50) / 0.25);
-        } else {
-            return interpolateColor('#f77f00', '#d62828', (ratio - 0.75) / 0.25);
-        }
-    }
+    function createContourStyleFunction(minAlt = 1915.0, maxAlt = 1950.0) {
+        const cache = {};
+        return function(feature, resolution) {
+            const elev = feature.get('elev') != null ? feature.get('elev') : (feature.get('ELEVATION') || 2000);
+            const isMaster = feature.get('is_master') != null ? feature.get('is_master') : (Math.round(elev * 10) % 50 === 0);
+            const showText = resolution < 1.5 && isMaster;
+            const key = `${elev}_${isMaster}_${showText}`;
+            if (cache[key]) return cache[key];
 
-    const contourStylesCache = {};
-    function contourStyleFunction(feature, resolution) {
-        const elev = feature.get('elev') != null ? feature.get('elev') : (feature.get('ELEVATION') || 2300);
-        const isMaster = feature.get('is_master') != null ? feature.get('is_master') : (Math.round(elev * 10) % 50 === 0);
-        const showText = resolution < 1.2 && isMaster;
-        const key = `${elev}_${isMaster}_${showText}`;
-        if (contourStylesCache[key]) return contourStylesCache[key];
+            const ratio = Math.max(0, Math.min(1, (elev - minAlt) / ((maxAlt - minAlt) || 1)));
+            let color;
+            if (ratio < 0.25) {
+                color = interpolateColor('#0077b6', '#06d6a0', ratio / 0.25);
+            } else if (ratio < 0.50) {
+                color = interpolateColor('#06d6a0', '#ffd166', (ratio - 0.25) / 0.25);
+            } else if (ratio < 0.75) {
+                color = interpolateColor('#ffd166', '#f77f00', (ratio - 0.50) / 0.25);
+            } else {
+                color = interpolateColor('#f77f00', '#d62828', (ratio - 0.75) / 0.25);
+            }
 
-        const color = getContourColor(elev);
-        const width = isMaster ? 2.5 : 1.2;
-        const style = new ol.style.Style({
-            stroke: new ol.style.Stroke({
-                color: color,
-                width: width
-            }),
-            text: showText ? new ol.style.Text({
-                text: `${elev}m`,
-                font: 'bold 11px sans-serif',
-                placement: 'line',
-                fill: new ol.style.Fill({ color: '#ffffff' }),
-                stroke: new ol.style.Stroke({ color: '#133c2e', width: 3.5 })
-            }) : undefined
-        });
-        contourStylesCache[key] = style;
-        return style;
+            const width = isMaster ? 2.5 : 1.2;
+            const style = new ol.style.Style({
+                stroke: new ol.style.Stroke({
+                    color: color,
+                    width: width
+                }),
+                text: showText ? new ol.style.Text({
+                    text: `${elev}m`,
+                    font: 'bold 11px sans-serif',
+                    placement: 'line',
+                    fill: new ol.style.Fill({ color: '#ffffff' }),
+                    stroke: new ol.style.Stroke({ color: '#133c2e', width: 3.5 })
+                }) : undefined
+            });
+            cache[key] = style;
+            return style;
+        };
     }
 
     for (const [name, info] of Object.entries(CFG.OVERLAY_LAYERS)) {
@@ -265,7 +250,9 @@
                     const baseColor = info.color || '#0077b6';
                     let vectorStyle;
                     if (isContour) {
-                        vectorStyle = contourStyleFunction;
+                        const minAlt = info.minAlt || 1915.0;
+                        const maxAlt = info.maxAlt || 1950.0;
+                        vectorStyle = createContourStyleFunction(minAlt, maxAlt);
                     } else {
                         const labelStyle = new ol.style.Style({
                             fill: new ol.style.Fill({ color: hexToRgba(baseColor, 0.30) }),
@@ -638,7 +625,7 @@
     }
 
     // Estado persistente del acordeón de grupos (+ y -)
-    const groupCollapseState = window.__groupCollapseState || { 'LUGAR_01': true, 'LUGAR_03': true, 'LUGAR_05': true };
+    const groupCollapseState = window.__groupCollapseState || { 'LUGAR_01': true, 'LUGAR_02': true, 'LUGAR_03': true, 'LUGAR_05': true };
     window.__groupCollapseState = groupCollapseState;
 
     function toggleGroupAccordion(groupId) {
@@ -658,7 +645,7 @@
     function renderLayersPanel() {
         const ovPanel = document.getElementById('overlay-panel');
         if (ovPanel) {
-            const orderKeys = ['LUGAR_01', 'LUGAR_03', 'LUGAR_05'];
+            const orderKeys = ['LUGAR_01', 'LUGAR_02', 'LUGAR_03', 'LUGAR_05'];
             const groups = Object.entries(CFG.GROUPS || {}).sort((a, b) => {
                 const idxA = orderKeys.indexOf(a[0]);
                 const idxB = orderKeys.indexOf(b[0]);
@@ -714,7 +701,7 @@
                                         🗺️ ${escapeHtml(ortoId)}
                                     </label>
                                 </div>
-                                <span class="badge text-bg-light border text-muted" style="font-size:0.68rem;">${(ortoId.includes('01') ? '2.9 cm/px (Nativa)' : (ortoId.includes('03') ? '2.8 cm/px (Nativa)' : '3.7 cm/px (Nativa)'))}</span>
+                                <span class="badge text-bg-light border text-muted" style="font-size:0.68rem;">${(ortoId.includes('01') ? '2.9 cm/px (Nativa)' : (ortoId.includes('02') ? '1.7 cm/px (Nativa)' : (ortoId.includes('03') ? '2.8 cm/px (Nativa)' : '3.7 cm/px (Nativa)')))}</span>
                             </div>
 
                             <!-- 2. Curvas de nivel -->

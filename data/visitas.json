@@ -2506,5 +2506,137 @@
     "pais": "Local",
     "lat": null,
     "lon": null
+  },
+  {
+    "fecha": "2026-09-20 17:52:41",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 18:37:13",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 18:38:04",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 18:39:09",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 18:39:19",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 18:39:23",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 18:39:36",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 18:39:50",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 18:40:41",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 18:41:02",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 18:41:51",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
+  },
+  {
+    "fecha": "2026-09-20 18:41:59",
+    "ip": "127.0.0.1",
+    "dispositivo": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "ubicacion": "Red Local / Servidor",
+    "ciudad": "Local",
+    "estado": "",
+    "pais": "Local",
+    "lat": null,
+    "lon": null
   }
 ]

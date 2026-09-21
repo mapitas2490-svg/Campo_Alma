@@ -1,0 +1,32 @@
+{
+  "instructions_es": [
+    "1. Levantar servidor local en la carpeta de salida:",
+    "     cd F:\\geoportal_Alma_Campo\\visor_web_export\\ortofoto_lugar_02",
+    "     python -m http.server 8000",
+    "2. En JOSM: Edit > Preferences > Imagery > + (Custom)",
+    "3. Pegar uno de los url de abajo como 'Tile URL'",
+    "4. Name: LUGAR_02_orto",
+    "5. Attribution: Ortofoto UAV LUGAR_02 2026 - Resolucion Nativa (1.7 cm/px)",
+    "6. Max zoom: 22"
+  ],
+  "tile_url_examples": {
+    "local_server": "http://localhost:8000/tiles/{z}/{x}/{y}.png",
+    "static_export": "tiles/{z}/{x}/{y}.png",
+    "github_pages_example": "https://<TU_USUARIO>.github.io/<TU_REPO>/tiles/{z}/{x}/{y}.png"
+  },
+  "josm_preferences_snippet": {
+    "_comment": "Pegar bajo imagery.layers en preferencias de JOSM",
+    "name": "LUGAR_02_orto",
+    "type": "tms",
+    "url": "http://localhost:8000/tiles/{z}/{x}/{y}.png",
+    "min_zoom": 15,
+    "max_zoom": 22,
+    "attribution": "Ortofoto UAV LUGAR_02 2026 - Resolucion Nativa (1.7 cm/px)",
+    "bbox": {
+      "min_lon": -97.74705289668316,
+      "min_lat": 18.48443402098834,
+      "max_lon": -97.74104414600771,
+      "max_lat": 18.486760295749065
+    }
+  }
+}
